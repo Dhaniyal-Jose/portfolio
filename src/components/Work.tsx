@@ -12,7 +12,8 @@ const PROJECTS = [
     name: "Major Bakery",
     category: "Web Development",
     tools: "HTML5, CSS3, Bootstrap 5, JavaScript, Isotope.js, Swiper.js, AOS.js",
-    link: "https://dhaniyal-jose.github.io/major-bakery/"
+    link: "https://dhaniyal-jose.github.io/major-bakery/",
+    image: "/images/major-bakery.jpg"
   },
   {
     name: "AI-Based Multisensory Aid",
@@ -24,6 +25,7 @@ const PROJECTS = [
     category: "Web Development",
     tools: "Responsive Design, Tailwind, React Ecosystem",
     link: "https://www.majorgoaholidays.com",
+    image: "/images/major-goa.jpg"
   },
   {
     name: "Smart Medicine Box",
@@ -126,7 +128,7 @@ const Work = () => {
                   <h4>Tools and features</h4>
                   <p>{project.tools}</p>
                 </div>
-                <WorkImage image="/images/placeholder.webp" alt="" link={project.link} />
+                <WorkImage image={project.image || "/images/placeholder.webp"} alt={project.name} link={project.link} />
               </div>
             ))}
           </div>
