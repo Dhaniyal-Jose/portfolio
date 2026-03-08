@@ -14,7 +14,6 @@ The project uses GSAP club plugins (trial version). With the trial plugin you ca
 
 **Tech Stack** - React, TypeScript, GSAP, ThreeJS, WebGL, HTML, CSS, JavaScript
 
-![Portfolio-Preview](https://github.com/user-attachments/assets/3c4557e7-6392-4928-b8a9-7b2476ef4edd)
 
 ## Connect
 
