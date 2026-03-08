@@ -1,15 +1,27 @@
-# My Portfolio Wesbite - Overview 🚀
+# Dhaniyal Jose - Portfolio Website 🚀
 
-This repository contains the open source version of my porfolio website.
+This repository contains the source code for **Dhaniyal Jose's** personal portfolio website.
+
 Do check it out!
+
+## About
+
+A creative developer portfolio built with modern web technologies, featuring smooth scroll animations, 3D effects, and a horizontal project showcase.
 
 ## Instructions 🛠️
 
-I have modified the gsap club plugins with the trial plugins, but with the trial plugin you cannot host it🔴. So for Club plugins, Check out here: https://gsap.com/docs/v3/Installation/
+The project uses GSAP club plugins (trial version). With the trial plugin you cannot host it 🔴. For Club plugins, check out: https://gsap.com/docs/v3/Installation/
 
-**Techstack** - React, TypeScript, GSAP, ThreeJS, WebGL, HTML, Css, JavaScript
+**Tech Stack** - React, TypeScript, GSAP, ThreeJS, WebGL, HTML, CSS, JavaScript
 
-![Protfolio-Preview](https://github.com/user-attachments/assets/3c4557e7-6392-4928-b8a9-7b2476ef4edd)
+![Portfolio-Preview](https://github.com/user-attachments/assets/3c4557e7-6392-4928-b8a9-7b2476ef4edd)
+
+## Connect
+
+- 🌐 GitHub: [github.com/Dhaniyal-Jose](https://github.com/Dhaniyal-Jose)
+- 💼 LinkedIn: [linkedin.com/in/dhaniyal-jose](https://www.linkedin.com/in/dhaniyal-jose)
+- 📸 Instagram: [@dhaniyal_jose_](https://www.instagram.com/dhaniyal_jose_)
+- 📧 Email: dhaniyaljosek@gmail.com
 
 ## License
 
