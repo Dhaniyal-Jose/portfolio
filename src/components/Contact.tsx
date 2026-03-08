@@ -10,21 +10,21 @@ const Contact = () => {
           <div className="contact-box">
             <h4>Email</h4>
             <p>
-              <a href="mailto:example@mail.com" data-cursor="disable">
-                example@mail.com
+              <a href="mailto:dhaniyaljosek@gmail.com" data-cursor="disable">
+                dhaniyaljosek@gmail.com
               </a>
             </p>
             <h4>Phone</h4>
             <p>
-              <a href="tel:+9199999999" data-cursor="disable">
-                +91 99999 99999
+              <a href="tel:+919447217461" data-cursor="disable">
+                +91 94472 17461
               </a>
             </p>
           </div>
           <div className="contact-box">
             <h4>Social</h4>
             <a
-              href="https://github.com"
+              href="https://github.com/Dhaniyal-Jose"
               target="_blank"
               data-cursor="disable"
               className="contact-social"
@@ -32,7 +32,7 @@ const Contact = () => {
               Github <MdArrowOutward />
             </a>
             <a
-              href="https://www.linkedin.com"
+              href="https://www.linkedin.com/in/dhaniyal-jose"
               target="_blank"
               data-cursor="disable"
               className="contact-social"
@@ -40,15 +40,15 @@ const Contact = () => {
               Linkedin <MdArrowOutward />
             </a>
             <a
-              href="https://x.com"
+              href="https://wa.me/919447217461"
               target="_blank"
               data-cursor="disable"
               className="contact-social"
             >
-              Twitter <MdArrowOutward />
+              Whatsapp <MdArrowOutward />
             </a>
             <a
-              href="https://www.instagram.com"
+              href="https://www.instagram.com/dhaniyal_jose_?igsh=Z3NrbHB4MHp6czdk&utm_source=qr"
               target="_blank"
               data-cursor="disable"
               className="contact-social"
@@ -58,7 +58,7 @@ const Contact = () => {
           </div>
           <div className="contact-box">
             <h2>
-              Designed and Developed <br /> by <span>Moncy Yohannan</span>
+              Designed and Developed <br /> by <span>Dhaniyal Jose</span>
             </h2>
             <h5>
               <MdCopyright /> 2024

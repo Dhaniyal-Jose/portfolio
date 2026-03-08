@@ -6,9 +6,11 @@ const About = () => {
       <div className="about-me">
         <h3 className="title">About Me</h3>
         <p className="para">
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic quis
-          dolores numquam iusto Ratione earum ducimus autem id iure pariatur
-          dolorum quae maiores.
+          With a passion for web, mobile app and software development, I have hands-on
+          experience in HTML, CSS, JavaScript, Flutter and Python. I envision creating innovative
+          digital solutions that enhance user experiences. Experienced in project
+          management and problem solving, I strive to excel in the tech industry with
+          creativity and dedication.
         </p>
       </div>
     </div>

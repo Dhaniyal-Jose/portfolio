@@ -15,43 +15,43 @@ const Career = () => {
           <div className="career-info-box">
             <div className="career-info-in">
               <div className="career-role">
-                <h4>Position In Company</h4>
-                <h5>Company Name</h5>
+                <h4>Software Developer Intern</h4>
+                <h5>Cognifyz Technologies</h5>
               </div>
-              <h3>20XX</h3>
+              <h3>2026</h3>
             </div>
             <p>
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Enim
-              labore sit non ipsum temporibus quidem, deserunt eaque officiis
-              mollitia ratione suscipit repellat.
+              Built console-based applications and implemented CRUD operations using
+              basic programming concepts like loops, conditionals, debugging, and simple
+              file handling while creating small utility programs.
             </p>
           </div>
           <div className="career-info-box">
             <div className="career-info-in">
               <div className="career-role">
-                <h4>Position In Company</h4>
-                <h5>Company Name</h5>
+                <h4>Mobile App Development Intern</h4>
+                <h5>Richinnovations</h5>
               </div>
-              <h3>20XX</h3>
+              <h3>2025</h3>
             </div>
             <p>
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Enim
-              labore sit non ipsum temporibus quidem, deserunt eaque officiis
-              mollitia ratione suscipit repellat.
+              Completed a hands-on internship focused on mobile app development, gaining
+              practical experience in core programming concepts for mobile platforms,
+              app frameworks, and deployment techniques for the Google Play Store / App Store.
             </p>
           </div>
           <div className="career-info-box">
             <div className="career-info-in">
               <div className="career-role">
-                <h4>Position In Company</h4>
-                <h5>Company Name</h5>
+                <h4>Web Development Intern</h4>
+                <h5>Keltron Knowledge</h5>
               </div>
-              <h3>NOW</h3>
+              <h3>2023</h3>
             </div>
             <p>
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Enim
-              labore sit non ipsum temporibus quidem, deserunt eaque officiis
-              mollitia ratione suscipit repellat.
+              Completed a foundational internship in Web Development gaining hands-on
+              experience with HTML5, CSS Styling, Layouts, Responsive Design, and
+              JavaScript basic scripting for dynamic webpage behaviour.
             </p>
           </div>
         </div>

@@ -174,7 +174,14 @@ const TechStack = () => {
         shadows
         gl={{ alpha: true, stencil: false, depth: false, antialias: false }}
         camera={{ position: [0, 0, 20], fov: 32.5, near: 1, far: 100 }}
-        onCreated={(state) => (state.gl.toneMappingExposure = 1.5)}
+        onCreated={(state) => {
+          state.gl.toneMappingExposure = 1.5;
+          setTimeout(() => {
+            import("gsap/ScrollTrigger").then(module => {
+              module.ScrollTrigger.refresh();
+            });
+          }, 500);
+        }}
         className="tech-canvas"
       >
         <ambientLight intensity={1} />
