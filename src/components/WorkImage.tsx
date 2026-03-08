@@ -6,6 +6,8 @@ interface Props {
   alt?: string;
   video?: string;
   link?: string;
+  description?: string;
+  onClickDescription?: () => void;
 }
 
 const WorkImage = (props: Props) => {
@@ -25,13 +27,20 @@ const WorkImage = (props: Props) => {
     <div className="work-image">
       <a
         className="work-image-in"
-        href={props.link}
+        href={props.link || "#"}
+        onClick={(e) => {
+          if (props.description && props.onClickDescription) {
+            e.preventDefault();
+            props.onClickDescription();
+          }
+        }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={() => setIsVideo(false)}
-        target="_blank"
+        target={props.link ? "_blank" : undefined}
+        rel={props.link ? "noopener noreferrer" : undefined}
         data-cursor={"disable"}
       >
-        {props.link && (
+        {(props.link || props.description) && (
           <div className="work-link">
             <MdArrowOutward />
           </div>

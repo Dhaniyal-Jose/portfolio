@@ -3,7 +3,7 @@ import WorkImage from "./WorkImage";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import { useRef } from "react";
+import { useState, useRef } from "react";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -19,6 +19,7 @@ const PROJECTS = [
     name: "AI-Based Multisensory Aid",
     category: "Artificial Intelligence",
     tools: "Real-time sign language recognition, object detection, spatial guidance",
+    description: "Abstract— TheAIBasedMultisensory Aid for Blind and Deaf (AIMS) is a wearable assistive system developed to enhance independence and safety for individuals with visual and hearing impairments. The device integrates artificial intelligence and computer vision to provide real-time environmental awareness and communication support. A camera captures live visual input, YOLO-based object detection identifies surrounding objects and ultrasonic sensor for obstacle detection. Optical Character Recognition (OCR) converts printed text into speech, while a convolutional neural network model enables accurate currency detection. In addition, a sign language recognition module using MediaPipe and CNN translates hand gestures into voice or text for improved communication. Feedback is provided through audio using a bone conduction earphone, allowing sound perception without blocking environmental awareness. The system is low-cost, portable, and designed for everyday use, combining multiple assistive features into a single platform that improves accessibility, mobility, and social inclusion."
   },
   {
     name: "Major Goa Holidays",
@@ -31,41 +32,49 @@ const PROJECTS = [
     name: "Smart Medicine Box",
     category: "IoT & Mobile App",
     tools: "Flutter, Firebase, ESP32, hardware-software integration",
+    link: "https://github.com/Dhaniyal-Jose/smart-medical-box"
   },
   {
     name: "Console-Based Text Game",
     category: "Game Development",
     tools: "Conditional statements, logical programming concepts",
+    link: "https://github.com/Dhaniyal-Jose/Text-based-game"
   },
   {
     name: "Number Pattern Generator",
     category: "Utility",
     tools: "Loops, control structures",
+    link: "https://github.com/Dhaniyal-Jose/Task-2-Generate-and-print-simple-number-patterns"
   },
   {
     name: "Task Manager",
     category: "CRUD Application",
     tools: "Create, Read, Update, Delete operations",
+    link: "https://github.com/Dhaniyal-Jose/basic-crud-operations"
   },
   {
     name: "Temperature Converter",
     category: "Utility Application",
     tools: "Temperature conversion logic",
+    link: "https://github.com/Dhaniyal-Jose/Temperature-converter"
   },
   {
     name: "File-Based Task Storage System",
     category: "Data Management",
     tools: "File handling, persistent data storage",
+    link: "https://github.com/Dhaniyal-Jose/Persistent-CRUD-Application"
   },
   {
     name: "Basic Web Scraping Tool",
     category: "Web Scraping",
     tools: "Web scraping libraries, data extraction",
+    link: "https://github.com/Dhaniyal-Jose/web-scraping"
   },
 ];
 
 const Work = () => {
   const spacerRef = useRef<HTMLDivElement>(null);
+  const [activeDescription, setActiveDescription] = useState<string | null>(null);
 
   useGSAP(() => {
     const boxes = document.querySelectorAll(".work-box");
@@ -128,7 +137,13 @@ const Work = () => {
                   <h4>Tools and features</h4>
                   <p>{project.tools}</p>
                 </div>
-                <WorkImage image={project.image || "/images/placeholder.webp"} alt={project.name} link={project.link} />
+                <WorkImage
+                  image={project.image || "/images/placeholder.webp"}
+                  alt={project.name}
+                  link={project.link}
+                  description={project.description}
+                  onClickDescription={() => setActiveDescription(project.description || null)}
+                />
               </div>
             ))}
           </div>
@@ -137,6 +152,15 @@ const Work = () => {
       {/* Spacer div: its height is set by JS to match the horizontal scroll distance needed.
           This forces the parent (smooth-content) to have enough height for the pin. */}
       <div ref={spacerRef} className="work-spacer" />
+
+      {activeDescription && (
+        <div className="project-modal-overlay" onClick={() => setActiveDescription(null)}>
+          <div className="project-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="project-modal-close" onClick={() => setActiveDescription(null)}>×</button>
+            <p>{activeDescription}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
