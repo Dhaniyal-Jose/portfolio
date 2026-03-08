@@ -25,7 +25,7 @@ const WhatIDo = () => {
     };
   }, []);
   return (
-    <div className="whatIDO">
+    <div className="what I DO">
       <div className="what-box">
         <h2 className="title">
           W<span className="hat-h2">HAT</span>
