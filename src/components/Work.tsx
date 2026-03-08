@@ -19,7 +19,8 @@ const PROJECTS = [
     name: "AI-Based Multisensory Aid",
     category: "Artificial Intelligence",
     tools: "Real-time sign language recognition, object detection, spatial guidance",
-    description: "Abstract— TheAIBasedMultisensory Aid for Blind and Deaf (AIMS) is a wearable assistive system developed to enhance independence and safety for individuals with visual and hearing impairments. The device integrates artificial intelligence and computer vision to provide real-time environmental awareness and communication support. A camera captures live visual input, YOLO-based object detection identifies surrounding objects and ultrasonic sensor for obstacle detection. Optical Character Recognition (OCR) converts printed text into speech, while a convolutional neural network model enables accurate currency detection. In addition, a sign language recognition module using MediaPipe and CNN translates hand gestures into voice or text for improved communication. Feedback is provided through audio using a bone conduction earphone, allowing sound perception without blocking environmental awareness. The system is low-cost, portable, and designed for everyday use, combining multiple assistive features into a single platform that improves accessibility, mobility, and social inclusion."
+    description: "Abstract— TheAIBasedMultisensory Aid for Blind and Deaf (AIMS) is a wearable assistive system developed to enhance independence and safety for individuals with visual and hearing impairments. The device integrates artificial intelligence and computer vision to provide real-time environmental awareness and communication support. A camera captures live visual input, YOLO-based object detection identifies surrounding objects and ultrasonic sensor for obstacle detection. Optical Character Recognition (OCR) converts printed text into speech, while a convolutional neural network model enables accurate currency detection. In addition, a sign language recognition module using MediaPipe and CNN translates hand gestures into voice or text for improved communication. Feedback is provided through audio using a bone conduction earphone, allowing sound perception without blocking environmental awareness. The system is low-cost, portable, and designed for everyday use, combining multiple assistive features into a single platform that improves accessibility, mobility, and social inclusion.",
+    image: "/images/multisensory_aid.png"
   },
   {
     name: "Major Goa Holidays",
@@ -32,43 +33,50 @@ const PROJECTS = [
     name: "Smart Medicine Box",
     category: "IoT & Mobile App",
     tools: "Flutter, Firebase, ESP32, hardware-software integration",
-    link: "https://github.com/Dhaniyal-Jose/smart-medical-box"
+    link: "https://github.com/Dhaniyal-Jose/smart-medical-box",
+    image: "/images/medicine_box.png"
   },
   {
     name: "Console-Based Text Game",
     category: "Game Development",
     tools: "Conditional statements, logical programming concepts",
-    link: "https://github.com/Dhaniyal-Jose/Text-based-game"
+    link: "https://github.com/Dhaniyal-Jose/Text-based-game",
+    image: "/images/text_game.png"
   },
   {
     name: "Number Pattern Generator",
     category: "Utility",
     tools: "Loops, control structures",
-    link: "https://github.com/Dhaniyal-Jose/Task-2-Generate-and-print-simple-number-patterns."
+    link: "https://github.com/Dhaniyal-Jose/Task-2-Generate-and-print-simple-number-patterns.",
+    image: "/images/number_pattern.png"
   },
   {
     name: "Task Manager",
     category: "CRUD Application",
     tools: "Create, Read, Update, Delete operations",
-    link: "https://github.com/Dhaniyal-Jose/basic-crud-operations"
+    link: "https://github.com/Dhaniyal-Jose/basic-crud-operations",
+    image: "/images/task_manager.png"
   },
   {
     name: "Temperature Converter",
     category: "Utility Application",
     tools: "Temperature conversion logic",
-    link: "https://github.com/Dhaniyal-Jose/Temperature-converter"
+    link: "https://github.com/Dhaniyal-Jose/Temperature-converter",
+    image: "/images/temperature_converter.png"
   },
   {
     name: "File-Based Task Storage System",
     category: "Data Management",
     tools: "File handling, persistent data storage",
-    link: "https://github.com/Dhaniyal-Jose/Persistent-CRUD-Application"
+    link: "https://github.com/Dhaniyal-Jose/Persistent-CRUD-Application",
+    image: "/images/file_storage.png"
   },
   {
     name: "Basic Web Scraping Tool",
     category: "Web Scraping",
     tools: "Web scraping libraries, data extraction",
-    link: "https://github.com/Dhaniyal-Jose/web-scraping"
+    link: "https://github.com/Dhaniyal-Jose/web-scraping",
+    image: "/images/web_scraping.png"
   },
 ];
 
