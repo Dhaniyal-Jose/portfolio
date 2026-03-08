@@ -44,7 +44,7 @@ const PROJECTS = [
     name: "Number Pattern Generator",
     category: "Utility",
     tools: "Loops, control structures",
-    link: "https://github.com/Dhaniyal-Jose/Task-2-Generate-and-print-simple-number-patterns"
+    link: "https://github.com/Dhaniyal-Jose/Task-2-Generate-and-print-simple-number-patterns."
   },
   {
     name: "Task Manager",
