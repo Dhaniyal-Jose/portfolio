@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { useRef, useMemo, useState, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Environment } from "@react-three/drei";
+import { Environment, Text } from "@react-three/drei";
 import { EffectComposer, N8AO } from "@react-three/postprocessing";
 import {
   BallCollider,
@@ -12,17 +12,23 @@ import {
 } from "@react-three/rapier";
 
 const textureLoader = new THREE.TextureLoader();
-const imageUrls = [
-  "/images/react2.webp",
-  "/images/next2.webp",
-  "/images/node2.webp",
-  "/images/express.webp",
-  "/images/mongo.webp",
-  "/images/mysql.webp",
-  "/images/typescript.webp",
-  "/images/javascript.webp",
+const techData = [
+  { url: "/images/react2.webp", name: "React" },
+  { url: "/images/next2.webp", name: "Next.js" },
+  { url: "/images/node2.webp", name: "Node.js" },
+  { url: "/images/express.webp", name: "Express" },
+  { url: "/images/mongo.webp", name: "MongoDB" },
+  { url: "/images/mysql.webp", name: "MySQL" },
+  { url: "/images/typescript.webp", name: "TypeScript" },
+  { url: "/images/javascript.webp", name: "JavaScript" },
+  { url: "/images/python.webp", name: "Python" },
+  { url: "/images/html.webp", name: "HTML" },
+  { url: "/images/flutter.webp", name: "Flutter" },
 ];
-const textures = imageUrls.map((url) => textureLoader.load(url));
+const textures = techData.map((data) => ({
+  texture: textureLoader.load(data.url),
+  name: data.name
+}));
 
 const sphereGeometry = new THREE.SphereGeometry(1, 28, 28);
 
@@ -35,6 +41,7 @@ type SphereProps = {
   scale: number;
   r?: typeof THREE.MathUtils.randFloatSpread;
   material: THREE.MeshPhysicalMaterial;
+  name: string;
   isActive: boolean;
 };
 
@@ -43,6 +50,7 @@ function SphereGeo({
   scale,
   r = THREE.MathUtils.randFloatSpread,
   material,
+  name,
   isActive,
 }: SphereProps) {
   const api = useRef<RapierRigidBody | null>(null);
@@ -87,6 +95,17 @@ function SphereGeo({
         material={material}
         rotation={[0.3, 1, 1]}
       />
+      <Text
+        position={[0, scale + 0.5, 0]}
+        fontSize={0.4}
+        color="white"
+        anchorX="center"
+        anchorY="middle"
+        outlineWidth={0.02}
+        outlineColor="#000000"
+      >
+        {name}
+      </Text>
     </RigidBody>
   );
 }
@@ -151,19 +170,19 @@ const TechStack = () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
-  const materials = useMemo(() => {
-    return textures.map(
-      (texture) =>
-        new THREE.MeshPhysicalMaterial({
-          map: texture,
-          emissive: "#ffffff",
-          emissiveMap: texture,
-          emissiveIntensity: 0.3,
-          metalness: 0.5,
-          roughness: 1,
-          clearcoat: 0.1,
-        })
-    );
+  const materialsData = useMemo(() => {
+    return textures.map((data) => ({
+      name: data.name,
+      material: new THREE.MeshPhysicalMaterial({
+        map: data.texture,
+        emissive: "#ffffff",
+        emissiveMap: data.texture,
+        emissiveIntensity: 0.3,
+        metalness: 0.5,
+        roughness: 1,
+        clearcoat: 0.1,
+      }),
+    }));
   }, []);
 
   return (
@@ -196,14 +215,18 @@ const TechStack = () => {
         <directionalLight position={[0, 5, -4]} intensity={2} />
         <Physics gravity={[0, 0, 0]}>
           <Pointer isActive={isActive} />
-          {spheres.map((props, i) => (
-            <SphereGeo
-              key={i}
-              {...props}
-              material={materials[Math.floor(Math.random() * materials.length)]}
-              isActive={isActive}
-            />
-          ))}
+          {spheres.map((props, i) => {
+            const matData = materialsData[Math.floor(Math.random() * materialsData.length)];
+            return (
+              <SphereGeo
+                key={i}
+                {...props}
+                material={matData.material}
+                name={matData.name}
+                isActive={isActive}
+              />
+            );
+          })}
         </Physics>
         <Environment
           files="/models/char_enviorment.hdr"
