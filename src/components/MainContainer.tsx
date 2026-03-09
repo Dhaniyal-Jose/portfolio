@@ -8,6 +8,7 @@ import Navbar from "./Navbar";
 import SocialIcons from "./SocialIcons";
 import WhatIDo from "./WhatIDo";
 import Work from "./Work";
+import Certifications from "./Certifications";
 import setSplitText from "./utils/splitText";
 import SnowEffect from "./SnowEffect";
 
@@ -45,6 +46,7 @@ const MainContainer = ({ children }: PropsWithChildren) => {
             <About />
             <WhatIDo />
             <Career />
+            <Certifications />
             <Work />
             {isDesktopView && (
               <Suspense fallback={<div>Loading....</div>}>
