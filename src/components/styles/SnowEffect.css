@@ -1,0 +1,33 @@
+.snow-fixed-wrapper {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 100vw;
+    height: 100vh;
+    /* Make sure it doesn't block underlying scroll and clicks! */
+    pointer-events: none;
+    z-index: 50;
+    /* A high enough z-index to show over bg elements but not block UI because of pointer-events: none. Adjust as needed. */
+}
+
+.snow-text-img {
+    display: none;
+}
+
+.snow-canvas {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    aspect-ratio: 1;
+    width: 100%;
+    height: auto;
+}
+
+@media (max-aspect-ratio: 1) {
+    .snow-canvas {
+        width: auto;
+        height: 100%;
+    }
+}

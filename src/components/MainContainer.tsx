@@ -9,6 +9,7 @@ import SocialIcons from "./SocialIcons";
 import WhatIDo from "./WhatIDo";
 import Work from "./Work";
 import setSplitText from "./utils/splitText";
+import SnowEffect from "./SnowEffect";
 
 const TechStack = lazy(() => import("./TechStack"));
 
@@ -32,6 +33,7 @@ const MainContainer = ({ children }: PropsWithChildren) => {
   return (
     <div className="container-main">
       <Cursor />
+      <SnowEffect />
       <Navbar />
       <SocialIcons />
       {isDesktopView && children}
