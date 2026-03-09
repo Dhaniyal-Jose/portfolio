@@ -1,0 +1,1067 @@
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+    *, *::before, *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    body {
+        font-family: "Inter", sans-serif;
+        overflow: hidden;
+        background: #040307; 
+        background-image:
+            radial-gradient(circle at 50% 35%, #1d1431 0%, transparent 65%),
+            linear-gradient(180deg, #000000 0%, #070012 100%);
+        color: #eee;
+    }
+    #container {
+        position: fixed;
+        inset: 0;
+    }
+    .vignette {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 9;
+        background: radial-gradient(circle at center, rgba(0,0,0,0) 65%, rgba(0,0,0,.5) 100%);
+    }
+    canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    .instructions {
+        position: fixed;
+        left: 24px;
+        bottom: 24px;
+        transform: none;
+        padding: 10px 20px;
+        font-size: 12px;
+        text-align: left;
+        pointer-events: none;
+        color: #d0b0ff;
+        background: rgba(18, 15, 40, 0.25);
+        border: 1px solid rgba(122, 70, 255, 0.28);
+        border-radius: 12px;
+        backdrop-filter: blur(12px);
+        z-index: 10;
+        box-shadow: 0 4px 20px rgba(0,0,0,.45);
+    }
+
+    #morphButton {
+        position: fixed;
+        left: 50%;
+        bottom: 24px;
+        transform: translateX(-50%);
+        padding: 12px 30px;
+        font-size: 14px;
+        font-weight: 500;
+        color: rgba(230, 220, 255, 0.9);
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 50px;
+        backdrop-filter: blur(10px) saturate(180%);
+        -webkit-backdrop-filter: blur(10px) saturate(180%);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        cursor: pointer;
+        z-index: 10;
+        transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+
+    #morphButton:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateX(-50%) scale(1.05);
+        box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+        color: white;
+    }
+
+    #morphButton:active {
+        transform: translateX(-50%) scale(0.98);
+    }
+</style>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<div id="container"></div>
+<div class="vignette"></div>
+<div class="instructions">Drag to explore — particles will slowly reorganize into each tree.</div>
+<button id="morphButton">Morph Shape</button>
+
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { AfterimagePass } from "three/addons/postprocessing/AfterimagePass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+
+const PARTICLE_COUNT = 15000;
+const SPARK_COUNT = 2000;
+const STAR_COUNT = 7000;
+const SNOW_COUNT = 2200;
+const LIGHT_COUNT = 1200;
+
+let scene, camera, renderer, composer, controls;
+let particles, sparkles, stars, snow, lights;
+let clock = new THREE.Clock();
+// start with the second tree (index 1 -> christmasTreeSparse)
+let currentPattern = 1, isTrans = false, prog = 0;
+let morphSpeed = 0.02; // slightly slower so re-organization feels gentle
+
+function normalise(points, size) {
+    if (points.length === 0) return [];
+    const box = new THREE.Box3().setFromPoints(points);
+    const maxDim = Math.max(...box.getSize(new THREE.Vector3()).toArray()) || 1;
+    const centre = box.getCenter(new THREE.Vector3());
+    return points.map(p => p.clone().sub(centre).multiplyScalar(size / maxDim));
+}
+
+/* ---------- patterns (same as before) ---------- */
+
+function christmasTreeClassic(n) {
+    const pts = [];
+    const layers = 14;
+    const baseRadius = 24;
+    const height = 72;
+    let used = 0;
+    for (let L = 0; L < layers && used < n; L++) {
+        const t = L / (layers - 1);
+        const y = -height / 2 + t * height;
+        const radius = baseRadius * (1 - Math.pow(t, 1.6));
+        const layerCount = Math.max(1, Math.floor((1 - t * 0.6) * (n / layers)));
+        for (let i = 0; i < layerCount && used < n; i++) {
+            const a = Math.random() * Math.PI * 2;
+            const r = radius * Math.pow(Math.random(), 0.6);
+            const x = Math.cos(a) * r;
+            const z = Math.sin(a) * r;
+            pts.push(new THREE.Vector3(x + (Math.random() - 0.5) * 0.4, y + (Math.random() - 0.5) * 0.6, z + (Math.random() - 0.5) * 0.4));
+            used++;
+        }
+    }
+    const trunk = Math.min(220, n - used);
+    for (let i = 0; i < trunk && used < n; i++) {
+        const x = (Math.random() - 0.5) * 1.6;
+        const z = (Math.random() - 0.5) * 1.6;
+        const y = -height/2 - Math.random()*6;
+        pts.push(new THREE.Vector3(x, y, z));
+        used++;
+    }
+    while (pts.length < n) {
+        pts.push(pts[Math.floor(Math.random()*pts.length)].clone());
+    }
+    return normalise(pts.slice(0,n), 60);
+}
+
+function christmasTreeSparse(n) {
+    const pts = [];
+    const rings = 40;
+    const height = 78;
+    const radius = 22;
+    let used = 0;
+    for (let r = 0; r < rings && used < n; r++) {
+        const t = r / (rings - 1);
+        const y = -height/2 + t * height;
+        const ringR = radius * (1 - t);
+        const pointsOnRing = Math.max(3, Math.floor(4 + (1 - t) * 40));
+        for (let i = 0; i < pointsOnRing && used < n; i++) {
+            if (Math.random() < 0.7) {
+                const a = (i / pointsOnRing) * Math.PI * 2 + (t * 0.6);
+                const x = Math.cos(a) * ringR;
+                const z = Math.sin(a) * ringR;
+                pts.push(new THREE.Vector3(x * (0.9 + Math.random()*0.2), y + (Math.random()-0.5)*0.6, z * (0.9 + Math.random()*0.2)));
+                used++;
+            }
+        }
+    }
+    for (let i=0;i<Math.min(300, n-used);i++){
+        const a = Math.random()*Math.PI*2;
+        const t = Math.random();
+        const y = -height/2 + t*height;
+        const rR = radius*(1-t);
+        const x = Math.cos(a)*rR;
+        const z = Math.sin(a)*rR;
+        pts.push(new THREE.Vector3(x*(0.98+Math.random()*0.04), y+(Math.random()-0.5)*0.8, z*(0.98+Math.random()*0.04)));
+        used++;
+    }
+    while (pts.length < n) pts.push(pts[Math.floor(Math.random()*pts.length)].clone());
+    return normalise(pts.slice(0,n), 60);
+}
+
+function christmasTreeOrnaments(n) {
+    const pts = [];
+    const foliageLayers = 12;
+    const baseRadius = 22;
+    const height = 72;
+    let used = 0;
+    for (let L = 0; L < foliageLayers && used < n; L++) {
+        const t = L / (foliageLayers - 1);
+        const y = -height/2 + t * height;
+        const radius = baseRadius * (1 - t*0.9);
+        const density = Math.floor((1 - t*0.4) * (n / foliageLayers));
+        for (let i = 0; i < density && used < n; i++) {
+            const a = Math.random() * Math.PI * 2;
+            const r = radius * (0.5 + Math.random() * 0.5);
+            const x = Math.cos(a) * r;
+            const z = Math.sin(a) * r;
+            pts.push(new THREE.Vector3(x + (Math.random()-0.5)*0.7, y + (Math.random()-0.5)*0.6, z + (Math.random()-0.5)*0.7));
+            used++;
+        }
+    }
+    const trunk = Math.min(200, n-used);
+    for (let i=0;i<trunk && used<n;i++){
+        const x=(Math.random()-0.5)*1.8; const z=(Math.random()-0.5)*1.8; const y=-height/2 - Math.random()*5;
+        pts.push(new THREE.Vector3(x,y,z)); used++;
+    }
+    const ornaments = Math.min(800, n-used);
+    for (let i=0;i<ornaments && used<n;i++){
+        const layer = Math.floor(Math.random()*foliageLayers);
+        const t = layer/(foliageLayers-1);
+        const y = -height/2 + t*height + (Math.random()-0.5)*0.6;
+        const radius = baseRadius*(1 - t*0.9);
+        const a = Math.random()*Math.PI*2;
+        const r = radius*(0.6 + Math.random()*0.4);
+        const x = Math.cos(a)*r; const z = Math.sin(a)*r;
+        pts.push(new THREE.Vector3(x + (Math.random()-0.5)*0.2, y, z + (Math.random()-0.5)*0.2));
+        used++;
+    }
+    while (pts.length < n) pts.push(pts[Math.floor(Math.random()*pts.length)].clone());
+    return normalise(pts.slice(0,n), 60);
+}
+
+function christmasTreeStacked(n) {
+    const pts = [];
+    const tiers = 8;
+    const baseRadius = 26;
+    const totalHeight = 80;
+    let used = 0;
+    for (let tier = 0; tier < tiers && used < n; tier++) {
+        const t = tier / (tiers - 1);
+        const tierHeight = (totalHeight / tiers) * (0.9 + Math.random()*0.2);
+        const y = -totalHeight/2 + t * totalHeight;
+        const radius = baseRadius * (1 - t*0.95);
+        const thickness = 1.6 + Math.random()*0.8;
+        const tierCount = Math.max(1, Math.floor((1 - t*0.3) * (n / tiers)));
+        for (let i = 0; i < tierCount && used < n; i++) {
+            const a = Math.random() * Math.PI * 2;
+            const r = radius * Math.pow(Math.random(), 0.8);
+            const x = Math.cos(a) * r;
+            const z = Math.sin(a) * r;
+            const yy = y + (Math.random()-0.5) * thickness;
+            pts.push(new THREE.Vector3(x + (Math.random()-0.5)*0.3, yy, z + (Math.random()-0.5)*0.3));
+            used++;
+        }
+    }
+    for (let i=0;i<200 && used<n;i++){
+        const x=(Math.random()-0.5)*1.8; const z=(Math.random()-0.5)*1.8; const y=-totalHeight/2 - Math.random()*6;
+        pts.push(new THREE.Vector3(x,y,z)); used++;
+    }
+    while (pts.length < n) pts.push(pts[Math.floor(Math.random()*pts.length)].clone());
+    return normalise(pts.slice(0,n), 60);
+}
+
+function christmasTreeSpiral(n) {
+    const pts = [];
+    const turns = 6.5;
+    const height = 78;
+    const baseRadius = 22;
+    const spineCount = Math.floor(n * 0.12);
+    let used = 0;
+    const foliageCount = Math.floor(n * 0.75);
+    for (let i = 0; i < foliageCount && used < n; i++) {
+        const t = Math.random();
+        const y = -height/2 + t*height;
+        const rmax = baseRadius * (1 - t*0.95);
+        const r = rmax * Math.pow(Math.random(), 0.6);
+        const a = Math.random() * Math.PI * 2;
+        const x = Math.cos(a)*r;
+        const z = Math.sin(a)*r;
+        pts.push(new THREE.Vector3(x + (Math.random()-0.5)*0.6, y + (Math.random()-0.5)*0.6, z + (Math.random()-0.5)*0.6));
+        used++;
+    }
+    for (let i = 0; i < spineCount && used < n; i++) {
+        const t = i / Math.max(1, spineCount - 1);
+        const angle = t * turns * Math.PI * 2;
+        const y = -height/2 + t * height;
+        const r = baseRadius * (1 - t) * (0.75 + 0.2*Math.sin(t*12));
+        const x = Math.cos(angle) * r;
+        const z = Math.sin(angle) * r;
+        pts.push(new THREE.Vector3(x + (Math.random()-0.5)*0.15, y + (Math.random()-0.5)*0.15, z + (Math.random()-0.5)*0.15));
+        used++;
+    }
+    const topCount = Math.min(160, n - used);
+    for (let i=0;i<topCount && used<n;i++){
+        const x=(Math.random()-0.5)*0.8; const z=(Math.random()-0.5)*0.8; const y=height/2 + Math.random()*1.6;
+        pts.push(new THREE.Vector3(x,y,z)); used++;
+    }
+    const trunk = Math.min(180, n - used);
+    for (let i=0;i<trunk && used<n;i++){
+        const x=(Math.random()-0.5)*1.6; const z=(Math.random()-0.5)*1.6; const y=-height/2 - Math.random()*5;
+        pts.push(new THREE.Vector3(x,y,z)); used++;
+    }
+    while (pts.length < n) pts.push(pts[Math.floor(Math.random()*pts.length)].clone());
+    return normalise(pts.slice(0,n), 60);
+}
+
+/* NEW patterns (bonsai, candy, frosted, lollipop) */
+function christmasTreeBonsai(n) {
+    const pts = [];
+    const layers = 10;
+    const baseRadius = 12;
+    const height = 28;
+    let used = 0;
+    for (let L = 0; L < layers && used < n; L++) {
+        const t = L / (layers - 1);
+        const y = -height / 2 + t * height;
+        const radius = baseRadius * (1 - Math.pow(t, 1.8));
+        const layerCount = Math.max(1, Math.floor((1 - t * 0.2) * (n / layers)));
+        for (let i = 0; i < layerCount && used < n; i++) {
+            const a = Math.random() * Math.PI * 2;
+            const r = radius * Math.pow(Math.random(), 1.1);
+            const x = Math.cos(a) * r;
+            const z = Math.sin(a) * r;
+            pts.push(new THREE.Vector3(x + (Math.random()-0.5)*0.15, y + (Math.random()-0.5)*0.2, z + (Math.random()-0.5)*0.15));
+            used++;
+        }
+    }
+    for (let i=0;i<60 && used<n;i++){
+        const x=(Math.random()-0.5)*0.6; const z=(Math.random()-0.5)*0.6; const y=-height/2 - Math.random()*2;
+        pts.push(new THREE.Vector3(x,y,z)); used++;
+    }
+    while (pts.length < n) pts.push(pts[Math.floor(Math.random()*pts.length)].clone());
+    return normalise(pts.slice(0,n), 60);
+}
+
+function christmasTreeCandy(n) {
+    const pts = [];
+    const turns = 8;
+    const height = 70;
+    const baseRadius = 20;
+    let used = 0;
+    const spiralCount = Math.floor(n * 0.45);
+    for (let i=0;i<spiralCount && used<n;i++){
+        const t = i / spiralCount;
+        const angle = t * turns * Math.PI * 2;
+        const y = -height/2 + t * height + (Math.sin(t*20)*0.8);
+        const r = baseRadius * (1 - t*0.95) * (0.7 + 0.15*Math.sin(t*12));
+        const x = Math.cos(angle) * r;
+        const z = Math.sin(angle) * r;
+        pts.push(new THREE.Vector3(x + (Math.random()-0.5)*0.4, y + (Math.random()-0.5)*0.5, z + (Math.random()-0.5)*0.4));
+        used++;
+    }
+    const foliage = n - used - 200;
+    for (let i=0;i<foliage && used<n;i++){
+        const t = Math.random();
+        const y = -height/2 + t*height;
+        const rmax = baseRadius*(1 - t*0.9);
+        const r = rmax * Math.pow(Math.random(), 0.7);
+        const a = Math.random()*Math.PI*2;
+        pts.push(new THREE.Vector3(Math.cos(a)*r + (Math.random()-0.5)*0.6, y + (Math.random()-0.5)*0.6, Math.sin(a)*r + (Math.random()-0.5)*0.6));
+        used++;
+    }
+    for (let i=0;i<200 && used<n;i++){
+        const x=(Math.random()-0.5)*1.6; const z=(Math.random()-0.5)*1.6; const y=-height/2 - Math.random()*6;
+        pts.push(new THREE.Vector3(x,y,z)); used++;
+    }
+    while (pts.length < n) pts.push(pts[Math.floor(Math.random()*pts.length)].clone());
+    return normalise(pts.slice(0,n), 60);
+}
+
+function christmasTreeFrosted(n) {
+    const pts = [];
+    const layers = 16;
+    const baseRadius = 24;
+    const height = 78;
+    let used = 0;
+    for (let L = 0; L < layers && used < n; L++) {
+        const t = L / (layers - 1);
+        const y = -height / 2 + t * height;
+        const densityFactor = 1 + Math.pow(t, 2.2) * 2.5;
+        const radius = baseRadius * (1 - Math.pow(t, 1.2));
+        const layerCount = Math.max(1, Math.floor((n / layers) * densityFactor));
+        for (let i = 0; i < layerCount && used < n; i++) {
+            const a = Math.random() * Math.PI * 2;
+            const r = radius * Math.pow(Math.random(), 0.7);
+            const x = Math.cos(a) * r;
+            const z = Math.sin(a) * r;
+            pts.push(new THREE.Vector3(x + (Math.random()-0.5)*0.5, y + Math.abs((Math.random()-0.25))*0.9, z + (Math.random()-0.5)*0.5));
+            used++;
+        }
+    }
+    for (let i=0;i<160 && used<n;i++){
+        const x=(Math.random()-0.5)*1.6; const z=(Math.random()-0.5)*1.6; const y=-height/2 - Math.random()*5;
+        pts.push(new THREE.Vector3(x,y,z)); used++;
+    }
+    while (pts.length < n) pts.push(pts[Math.floor(Math.random()*pts.length)].clone());
+    return normalise(pts.slice(0,n), 60);
+}
+
+function christmasTreeLollipop(n) {
+    const pts = [];
+    const blobs = 12;
+    const baseRadius = 18;
+    const height = 68;
+    let used = 0;
+    for (let b = 0; b < blobs && used < n; b++) {
+        const t = b / (blobs - 1);
+        const centerY = -height/2 + t * height;
+        const blobR = baseRadius * (1 - t*0.85) * (0.6 + Math.random()*0.6);
+        const count = Math.floor((n / blobs) * (0.8 + Math.random()*0.8));
+        for (let i = 0; i < count && used < n; i++) {
+            const a = Math.random()*Math.PI*2;
+            const r = blobR * Math.pow(Math.random(), 0.6);
+            const x = Math.cos(a)*r;
+            const z = Math.sin(a)*r;
+            pts.push(new THREE.Vector3(x + (Math.random()-0.5)*0.8, centerY + (Math.random()-0.5)*0.9, z + (Math.random()-0.5)*0.8));
+            used++;
+        }
+    }
+    for (let i=0;i<140 && used<n;i++){
+        const x=(Math.random()-0.5)*1.4; const z=(Math.random()-0.5)*1.4; const y=-height/2 - Math.random()*5;
+        pts.push(new THREE.Vector3(x,y,z)); used++;
+    }
+    while (pts.length < n) pts.push(pts[Math.floor(Math.random()*pts.length)].clone());
+    return normalise(pts.slice(0,n), 60);
+}
+
+/* PATTERNS list */
+const PATTERNS = [
+    christmasTreeClassic,
+    christmasTreeSparse,
+    christmasTreeOrnaments,
+    christmasTreeStacked,
+    christmasTreeSpiral,
+    christmasTreeBonsai,
+    christmasTreeCandy,
+    christmasTreeFrosted,
+    christmasTreeLollipop
+];
+
+/* ---------- visual systems (soothing shaders) ---------- */
+
+function createStars(){const geo=new THREE.BufferGeometry();const pos=new Float32Array(STAR_COUNT*3);const col=new Float32Array(STAR_COUNT*3);const size=new Float32Array(STAR_COUNT);const rnd=new Float32Array(STAR_COUNT);const R=900;for(let i=0;i<STAR_COUNT;i++){const i3=i*3,θ=Math.random()*2*Math.PI,φ=Math.acos(2*Math.random()-1),r=R*Math.cbrt(Math.random());pos[i3]=r*Math.sin(φ)*Math.cos(θ);pos[i3+1]=r*Math.sin(φ)*Math.sin(θ);pos[i3+2]=r*Math.cos(φ);const c=new THREE.Color().setHSL(Math.random()*.6,.3+.3*Math.random(),.55+.35*Math.random());col[i3]=c.r;col[i3+1]=c.g;col[i3+2]=c.b;size[i]=.25+Math.pow(Math.random(),4)*2.1;rnd[i]=Math.random()*Math.PI*2}geo.setAttribute("position",new THREE.BufferAttribute(pos,3));geo.setAttribute("color",new THREE.BufferAttribute(col,3));geo.setAttribute("size",new THREE.BufferAttribute(size,1));geo.setAttribute("random",new THREE.BufferAttribute(rnd,1));const mat=new THREE.ShaderMaterial({uniforms:{time:{value:0}},vertexShader:`attribute float size;attribute float random;
+varying vec3 vColor;varying float vRnd;
+void main(){vColor=color;vRnd=random;vec4 mv=modelViewMatrix*vec4(position,1.);gl_PointSize=size*(250./-mv.z);gl_Position=projectionMatrix*mv;}`,fragmentShader:`uniform float time;varying vec3 vColor;varying float vRnd;
+void main(){vec2 uv=gl_PointCoord-.5;float d=length(uv);float a=1.-smoothstep(.4,.5,d);a*=.7+.3*sin(time*(.6+vRnd*.3)+vRnd*5.);if(a<.02)discard;gl_FragColor=vec4(vColor,a);}`,transparent:true,depthWrite:false,vertexColors:true,blending:THREE.AdditiveBlending});return new THREE.Points(geo,mat)}
+
+/* makeParticles (soothing) */
+function makeParticles(count,palette){
+    const geo=new THREE.BufferGeometry();
+    const pos=new Float32Array(count*3);
+    const col=new Float32Array(count*3);
+    const size=new Float32Array(count);
+    const rnd=new Float32Array(count*3);
+    for(let i=0;i<count;i++){
+        const i3=i*3,base=palette[Math.random()*palette.length|0],hsl={h:0,s:0,l:0};
+        base.getHSL(hsl);
+        hsl.h+=(Math.random()-.5)*.05;
+        hsl.s=Math.min(1,Math.max(.6,hsl.s+(Math.random()-.5)*.25));
+        hsl.l=Math.min(.85,Math.max(.48,hsl.l+(Math.random()-.5)*.35 + 0.02));
+        const c=new THREE.Color().setHSL(hsl.h,hsl.s,hsl.l);
+        col[i3]=c.r;col[i3+1]=c.g;col[i3+2]=c.b;
+        size[i]=.6+Math.random()*1.1;
+        rnd[i3]=Math.random()*10;
+        rnd[i3+1]=Math.random()*Math.PI*2;
+        rnd[i3+2]=0.5+Math.random()*0.6;
+    }
+    geo.setAttribute("position",new THREE.BufferAttribute(pos,3));
+    geo.setAttribute("color",new THREE.BufferAttribute(col,3));
+    geo.setAttribute("size",new THREE.BufferAttribute(size,1));
+    geo.setAttribute("random",new THREE.BufferAttribute(rnd,3));
+    
+    const mat=new THREE.ShaderMaterial({
+        uniforms:{time:{value:0},hueSpeed:{value:0.12}},
+        vertexShader:`uniform float time;attribute float size;attribute vec3 random;
+varying vec3 vCol;varying float vR;varying float vRX;varying float vRY;
+void main(){
+    vCol=color; vR=random.z; vRX=random.x; vRY=random.y;
+    vec3 p=position;
+    float t=time*.25*random.z;
+    float ax=t+random.y, ay=t*.75+random.x;
+    float amp=(.45+sin(random.x+t*.45)*.2)*random.z;
+    p.x+=sin(ax+p.y*.06+random.x*.1)*amp;
+    p.y+=cos(ay+p.z*.06+random.y*.1)*amp;
+    p.z+=sin(ax*.85+p.x*.06+random.z*.1)*amp;
+    vec4 mv=modelViewMatrix*vec4(p,1.);
+    float pulse=.95+.08*sin(time*1.0+random.y);
+    gl_PointSize=size*pulse*(340./-mv.z);
+    gl_Position=projectionMatrix*mv;
+}`,
+        fragmentShader:`
+uniform float time;
+uniform float hueSpeed;
+varying vec3 vCol;
+varying float vR;
+varying float vRX;
+varying float vRY;
+
+vec3 hueShift(vec3 c, float h) {
+    const vec3 k = vec3(0.57735);
+    float cosA = cos(h);
+    float sinA = sin(h);
+    return c * cosA + cross(k, c) * sinA + k * dot(k, c) * (1.0 - cosA);
+}
+
+void main() {
+    vec2 uv = gl_PointCoord - 0.5;
+    float d = length(uv);
+    
+    float core = smoothstep(0.07, 0.0, d);
+    float angle = atan(uv.y, uv.x);
+    float flareSeed = sin(angle * 6.0 + time * 1.5 * vRY + vRX);
+    float flare = pow(max(0.0, flareSeed), 5.0);
+    flare *= smoothstep(0.6, 0.0, d);
+    float glow = smoothstep(0.5, 0.09, d);
+    
+    float twinkle = 0.18 * (0.5 + 0.5 * sin(time * 3.5 * vR + vRX));
+    float alpha = core * (1.0 + twinkle) + flare * 0.28 + glow * 0.15;
+    
+    vec3 color = hueShift(vCol, time * hueSpeed);
+    color = color * (1.0 + 0.25 * vR);
+    vec3 finalColor = mix(color, vec3(1.0, 0.96, 0.9), core * 0.6);
+    finalColor = mix(finalColor, color, flare * 0.45 + glow * 0.45);
+
+    if (alpha < 0.01) discard;
+    
+    gl_FragColor = vec4(finalColor, alpha);
+}`,
+        transparent:true,depthWrite:false,vertexColors:true,blending:THREE.AdditiveBlending
+    });
+    return new THREE.Points(geo,mat);
+}
+
+function createSparkles(count) {
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(count * 3);
+    const size = new Float32Array(count);
+    const rnd = new Float32Array(count * 3);
+
+    for (let i = 0; i < count; i++) {
+        size[i] = 0.35 + Math.random() * 0.6;
+        rnd[i*3] = Math.random() * 10;
+        rnd[i*3+1] = Math.random() * Math.PI * 2;
+        rnd[i*3+2] = 0.5 + 0.5 * Math.random();
+    }
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('size', new THREE.BufferAttribute(size, 1));
+    geo.setAttribute('random', new THREE.BufferAttribute(rnd, 3));
+
+    const mat = new THREE.ShaderMaterial({
+        uniforms: { time: { value: 0 } },
+        vertexShader: `
+            uniform float time;
+            attribute float size;
+            attribute vec3 random;
+            void main() {
+                vec3 p = position;
+                float t = time * 0.2 * random.z;
+                float ax = t + random.y, ay = t * 0.6 + random.x;
+                float amp = (0.45 + sin(random.x + t * 0.4) * 0.15) * random.z;
+                p.x += sin(ax + p.y * 0.06 + random.x * 0.08) * amp;
+                p.y += cos(ay + p.z * 0.06 + random.y * 0.08) * amp;
+                p.z += sin(ax * 0.85 + p.x * 0.06 + random.z * 0.08) * amp;
+                vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
+                gl_PointSize = size * (300.0 / -mvPosition.z);
+                gl_Position = projectionMatrix * mvPosition;
+            }`,
+        fragmentShader: `
+            uniform float time;
+            void main() {
+                float d = length(gl_PointCoord - vec2(0.5));
+                float alpha = 1.0 - smoothstep(0.45, 0.55, d);
+                if (alpha < 0.01) discard;
+                gl_FragColor = vec4(1.0, 1.0, 1.0, alpha*0.9);
+            }`,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+    });
+
+    return new THREE.Points(geo, mat);
+}
+
+/* Snow system */
+function createSnow(count) {
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(count * 3);
+    const vel = new Float32Array(count);
+    const size = new Float32Array(count);
+    const seed = new Float32Array(count);
+
+    const spread = 700;
+    const height = 500;
+    for (let i = 0; i < count; i++) {
+        const x = (Math.random() - 0.5) * spread;
+        const y = Math.random() * height + 20;
+        const z = (Math.random() - 0.5) * spread;
+        const idx = i * 3;
+        pos[idx] = x; pos[idx+1] = y; pos[idx+2] = z;
+        vel[i] = 10 + Math.random()*28;
+        size[i] = 1.1 + Math.random()*2.4;
+        seed[i] = Math.random() * Math.PI * 2;
+    }
+
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('vVel', new THREE.BufferAttribute(vel, 1));
+    geo.setAttribute('size', new THREE.BufferAttribute(size, 1));
+    geo.setAttribute('seed', new THREE.BufferAttribute(seed, 1));
+
+    const mat = new THREE.ShaderMaterial({
+        uniforms: { time: { value: 0 }, cameraPos: { value: new THREE.Vector3() } },
+        vertexShader: `
+            uniform float time;
+            attribute float size;
+            attribute float seed;
+            varying float vSeed;
+            void main() {
+                vSeed = seed;
+                vec3 p = position;
+                p.x += sin(time * 0.6 + seed) * 4.0;
+                p.z += cos(time * 0.45 + seed*0.7) * 4.0;
+                vec4 mv = modelViewMatrix * vec4(p, 1.0);
+                gl_PointSize = size * (300.0 / -mv.z);
+                gl_Position = projectionMatrix * mv;
+            }`,
+        fragmentShader: `
+            varying float vSeed;
+            void main() {
+                vec2 uv = gl_PointCoord - 0.5;
+                float d = length(uv);
+                float alpha = 1.0 - smoothstep(0.45, 0.6, d);
+                alpha *= 0.8 + 0.2 * sin(vSeed * 7.0);
+                if (alpha < 0.01) discard;
+                gl_FragColor = vec4(vec3(1.0), alpha);
+            }`,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.NormalBlending
+    });
+
+    return new THREE.Points(geo, mat);
+}
+
+function updateSnow(dt) {
+    if (!snow) return;
+    const pos = snow.geometry.attributes.position.array;
+    const vel = snow.geometry.attributes.vVel.array;
+    const seed = snow.geometry.attributes.seed.array;
+    const count = pos.length / 3;
+    for (let i = 0; i < count; i++) {
+        const idx = i * 3;
+        pos[idx+1] -= vel[i] * dt;
+        if (pos[idx+1] < -220) {
+            pos[idx] = (Math.random() - 0.5) * 700;
+            pos[idx+1] = 420 + Math.random() * 180;
+            pos[idx+2] = (Math.random() - 0.5) * 700;
+            vel[i] = 10 + Math.random()*28;
+            seed[i] = Math.random() * Math.PI * 2;
+        }
+    }
+    snow.geometry.attributes.position.needsUpdate = true;
+}
+
+/* Animated lights (soothing) */
+function createLights(count, palette) {
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(count * 3);
+    const col = new Float32Array(count * 3);
+    const size = new Float32Array(count);
+    const rnd = new Float32Array(count * 3);
+
+    for (let i = 0; i < count; i++) {
+        const idx = i * 3;
+        pos[idx] = 0; pos[idx+1] = 0; pos[idx+2] = 0;
+        const base = palette[Math.floor(Math.random()*palette.length)];
+        const c = base.clone();
+        c.offsetHSL(0, 0, 0.06);
+        col[idx] = c.r; col[idx+1] = c.g; col[idx+2] = c.b;
+        size[i] = 1.0 + Math.random() * 1.6;
+        rnd[idx] = Math.random() * Math.PI * 2;
+        rnd[idx+1] = 0.4 + Math.random() * 1.0;
+        rnd[idx+2] = 0.45 + Math.random() * 0.6;
+    }
+
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    geo.setAttribute('size', new THREE.BufferAttribute(size, 1));
+    geo.setAttribute('rnd', new THREE.BufferAttribute(rnd, 3));
+
+    const mat = new THREE.ShaderMaterial({
+        uniforms: { time: { value: 0 }, hueSpeed: { value: 0.35 } },
+        vertexShader: `
+            uniform float time;
+            attribute float size;
+            attribute vec3 rnd;
+            varying float vIntensity;
+            varying vec3 vColor;
+            void main() {
+                vIntensity = rnd.z;
+                vColor = color;
+                vec3 p = position;
+                float t = time * (0.4 + rnd.y * 0.25);
+                float orbit = 0.12 * rnd.y;
+                p.x += cos(t + rnd.x) * orbit * (0.6 + sin(t*0.6)*0.15);
+                p.z += sin(t*0.7 + rnd.x*0.4) * orbit * (0.6 + cos(t*0.5)*0.15);
+                p.y += sin(t * (0.7 + rnd.y*0.15) + rnd.x) * 0.35 * (0.5 + rnd.y*0.4);
+                vec4 mv = modelViewMatrix * vec4(p, 1.);
+                gl_PointSize = size * (420.0 / -mv.z) * 0.9;
+                gl_Position = projectionMatrix * mv;
+            }`,
+        fragmentShader: `
+            uniform float time;
+            uniform float hueSpeed;
+            varying float vIntensity;
+            varying vec3 vColor;
+
+            vec3 hueShift(vec3 c, float h) {
+                const vec3 k = vec3(0.57735);
+                float cosA = cos(h);
+                float sinA = sin(h);
+                return c * cosA + cross(k, c) * sinA + k * dot(k, c) * (1.0 - cosA);
+            }
+
+            void main() {
+                vec2 uv = gl_PointCoord - 0.5;
+                float d = length(uv);
+                float core = smoothstep(0.28, 0.0, d);
+                float glow = smoothstep(0.6, 0.2, d);
+                float tw = 0.6 + 0.4 * sin(time * (3.0 + vIntensity * 2.0) + vIntensity * 3.0);
+                float alpha = (core * (0.6 + 0.35 * vIntensity) + glow * 0.18) * (tw * 0.9);
+                if (alpha < 0.01) discard;
+                vec3 c = hueShift(vColor, time * 0.25 * (0.2 + vIntensity*0.3));
+                vec3 final = mix(c, vec3(1.0, 0.95, 0.9), core * 0.6);
+                final *= 1.0 + 0.35 * vIntensity;
+                gl_FragColor = vec4(final, alpha * 0.95);
+            }`,
+        transparent: true,
+        depthWrite: false,
+        vertexColors: true,
+        blending: THREE.AdditiveBlending
+    });
+
+    return new THREE.Points(geo, mat);
+}
+
+/* Place lights on a pattern sample */
+function placeLightsOnPattern(pts, lightsGeo) {
+    const lpos = lightsGeo.attributes.position.array;
+    const lsize = lightsGeo.attributes.size.array;
+    const cnt = Math.min(LIGHT_COUNT, lpos.length/3);
+    const n = pts.length;
+    for (let i = 0; i < cnt; i++) {
+        const idxPt = Math.floor(Math.pow(Math.random(), 0.8) * n);
+        const p = pts[idxPt % n] || new THREE.Vector3();
+        const j = i * 3;
+        const outward = 0.5 + Math.random() * 0.9;
+        const a = Math.random() * Math.PI * 2;
+        lpos[j] = p.x + Math.cos(a) * outward * (0.5 + Math.random()*0.5);
+        lpos[j+1] = p.y + (Math.random() - 0.5) * 0.6;
+        lpos[j+2] = p.z + Math.sin(a) * outward * (0.5 + Math.random()*0.5);
+        lsize[i] = 1.0 + Math.random() * 1.4;
+    }
+    lightsGeo.attributes.position.needsUpdate = true;
+    lightsGeo.attributes.size.needsUpdate = true;
+}
+
+/* ---------- init / startup morph behavior ---------- */
+
+function init() {
+    scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x050203, .012);
+
+    camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, .1, 4000);
+    camera.position.set(0, 0, 80);
+
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(devicePixelRatio);
+    renderer.setSize(innerWidth, innerHeight);
+    document.getElementById("container").appendChild(renderer.domElement);
+
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.screenSpacePanning = false;
+    controls.minDistance = 20;
+    controls.maxDistance = 200;
+    controls.target.set(0, 0, 0);
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.45;
+
+    stars = createStars();
+    scene.add(stars);
+
+    const palette = [
+        0x0b6623,
+        0x1fa12f,
+        0x2ecc71,
+        0xffd700,
+        0xff4500,
+        0xffffff,
+        0xff0055,
+        0xffaa00
+    ].map(c => new THREE.Color(c));
+
+    // create particle systems
+    particles = makeParticles(PARTICLE_COUNT, palette);
+    sparkles = createSparkles(SPARK_COUNT);
+    scene.add(particles);
+    scene.add(sparkles);
+
+    // create animated lights
+    lights = createLights(LIGHT_COUNT, palette);
+    scene.add(lights);
+
+    // create snow
+    snow = createSnow(SNOW_COUNT);
+    scene.add(snow);
+
+    composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.6, 0.7, 0.6));
+    const after = new AfterimagePass();
+    after.uniforms.damp.value = .92;
+    composer.addPass(after);
+    composer.addPass(new OutputPass());
+
+    // Initialize particle positions to a soft random spread (so they can reorganize INTO the pattern)
+    seedParticlesRandomly();
+
+    // Trigger initial gentle morph from random -> starting pattern
+    morphToPattern(currentPattern, { initial: true });
+
+    addEventListener("resize", () => {
+        camera.aspect = innerWidth / innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(innerWidth, innerHeight);
+        composer.setSize(innerWidth, innerHeight);
+    });
+    
+    document.getElementById('morphButton').addEventListener('click', () => {
+        if (!isTrans) {
+            beginMorph();
+        }
+    });
+}
+
+/* Put particles and sparkles into a random soft volume */
+function seedParticlesRandomly() {
+    const pos = particles.geometry.attributes.position.array;
+    const sPos = sparkles.geometry.attributes.position.array;
+    // use a soft spherical/capsule spread around center
+    const R = 120;
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+        const idx = i * 3;
+        // biased distribution (more in center)
+        const r = R * Math.cbrt(Math.random());
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+        pos[idx] = r * Math.sin(phi) * Math.cos(theta) + (Math.random()-0.5)*6;
+        pos[idx+1] = r * Math.cos(phi) * 0.6 + (Math.random()-0.5)*10; // slight flattening
+        pos[idx+2] = r * Math.sin(phi) * Math.sin(theta) + (Math.random()-0.5)*6;
+        if (i < SPARK_COUNT) {
+            sPos[idx] = pos[idx] + (Math.random()-0.5)*1.4;
+            sPos[idx+1] = pos[idx+1] + (Math.random()-0.5)*1.4;
+            sPos[idx+2] = pos[idx+2] + (Math.random()-0.5)*1.4;
+        }
+    }
+    particles.geometry.attributes.position.needsUpdate = true;
+    sparkles.geometry.attributes.position.needsUpdate = true;
+
+    // lights start scattered too
+    const lpos = lights.geometry.attributes.position.array;
+    for (let i = 0; i < Math.min(LIGHT_COUNT, lpos.length/3); i++) {
+        const j = i*3;
+        lpos[j] = (Math.random()-0.5) * 180;
+        lpos[j+1] = (Math.random()-0.2) * 80;
+        lpos[j+2] = (Math.random()-0.5) * 180;
+    }
+    lights.geometry.attributes.position.needsUpdate = true;
+}
+
+/* morphToPattern: generic morph helper that prepares interpolation from current positions -> pattern i
+   options.initial: if true, use a slightly slower morphSpeed temporary for a more graceful startup
+*/
+function morphToPattern(i, options = {}) {
+    const targetPts = PATTERNS[i](PARTICLE_COUNT);
+    const to = new Float32Array(PARTICLE_COUNT * 3);
+    for (let j = 0; j < PARTICLE_COUNT; j++) {
+        const idx = j * 3;
+        const p = targetPts[j] || new THREE.Vector3();
+        to[idx] = p.x; to[idx+1] = p.y; to[idx+2] = p.z;
+    }
+
+    const fromPts = particles.geometry.attributes.position.array.slice();
+    particles.userData = { from: fromPts, to, next: i };
+
+    const sparkFrom = sparkles.geometry.attributes.position.array.slice();
+    sparkles.userData = { from: sparkFrom, to, next: i };
+
+    // prepare lights interpolation: sample target positions for lights
+    const lightTargets = new Float32Array(LIGHT_COUNT * 3);
+    for (let k = 0; k < LIGHT_COUNT; k++) {
+        const idx = k*3;
+        const n = targetPts.length;
+        const sampleIndex = Math.floor(Math.pow(Math.random(), 0.8) * n) % n;
+        const p = targetPts[sampleIndex];
+        const a = Math.random() * Math.PI * 2;
+        const outward = 0.5 + Math.random() * 0.9;
+        lightTargets[idx]   = p.x + Math.cos(a) * outward * (0.5 + Math.random()*0.5);
+        lightTargets[idx+1] = p.y + (Math.random() - 0.5) * 0.6;
+        lightTargets[idx+2] = p.z + Math.sin(a) * outward * (0.5 + Math.random()*0.5);
+    }
+    lights.userData = {
+        from: lights.geometry.attributes.position.array.slice(),
+        to: lightTargets,
+        _prog: 0
+    };
+
+    // set morph state
+    isTrans = true;
+    prog = 0;
+
+    // if initial, temporarily slow morphSpeed slightly for graceful start
+    if (options.initial) {
+        morphSpeed = 0.012; // gentle initial reorg
+        // restore to normal after a delay (approx after morph duration)
+        setTimeout(() => { morphSpeed = 0.02; }, 6000);
+    }
+}
+
+function beginMorph() {
+    const next = (currentPattern + 1) % PATTERNS.length;
+    // set up interpolation from current positions -> next pattern
+    const fromPts = particles.geometry.attributes.position.array.slice();
+    const toPts = PATTERNS[next](PARTICLE_COUNT);
+    const to = new Float32Array(PARTICLE_COUNT*3);
+    for (let j = 0; j < PARTICLE_COUNT; j++) {
+        const idx = j*3; const p = toPts[j] || new THREE.Vector3();
+        to[idx] = p.x; to[idx+1] = p.y; to[idx+2] = p.z;
+    }
+    particles.userData = { from: fromPts, to, next };
+    sparkles.userData = { from: fromPts, to, next };
+
+    // lights interpolation targets
+    const lightTargets = new Float32Array(LIGHT_COUNT * 3);
+    for (let i = 0; i < LIGHT_COUNT; i++) {
+        const idx = i*3;
+        const n = toPts.length;
+        const sampleIndex = Math.floor(Math.pow(Math.random(), 0.8) * n) % n;
+        const p = toPts[sampleIndex];
+        const a = Math.random() * Math.PI * 2;
+        const outward = 0.5 + Math.random() * 0.9;
+        lightTargets[idx]   = p.x + Math.cos(a) * outward * (0.5 + Math.random()*0.5);
+        lightTargets[idx+1] = p.y + (Math.random() - 0.5) * 0.6;
+        lightTargets[idx+2] = p.z + Math.sin(a) * outward * (0.5 + Math.random()*0.5);
+    }
+    lights.userData = { from: lights.geometry.attributes.position.array.slice(), to: lightTargets, _prog: 0 };
+
+    isTrans = true;
+    prog = 0;
+}
+
+/* applyPattern (keeps behavior for instant set if needed) */
+function applyPattern(i) {
+    const pts = PATTERNS[i](PARTICLE_COUNT);
+    const particleArr = particles.geometry.attributes.position.array;
+    const sparkleArr = sparkles.geometry.attributes.position.array;
+    for (let j = 0; j < PARTICLE_COUNT; j++) {
+        const idx = j*3;
+        const p = pts[j] || new THREE.Vector3();
+        particleArr[idx] = p.x;
+        particleArr[idx+1] = p.y;
+        particleArr[idx+2] = p.z;
+        if (j < SPARK_COUNT) {
+            sparkleArr[idx] = p.x;
+            sparkleArr[idx+1] = p.y;
+            sparkleArr[idx+2] = p.z;
+        }
+    }
+    particles.geometry.attributes.position.needsUpdate = true;
+    sparkles.geometry.attributes.position.needsUpdate = true;
+
+    if (lights && lights.geometry) {
+        placeLightsOnPattern(pts, lights.geometry);
+    }
+}
+
+/* ---------- animation ---------- */
+
+function animate() {
+    requestAnimationFrame(animate);
+    const dt = clock.getDelta(), t = clock.getElapsedTime();
+
+    controls.update();
+
+    particles.material.uniforms.time.value = t;
+    sparkles.material.uniforms.time.value = t;
+    if (lights && lights.material && lights.material.uniforms) {
+        lights.material.uniforms.time.value = t;
+    }
+    if (snow && snow.material.uniforms) snow.material.uniforms.time.value = t;
+
+    updateSnow(dt);
+
+    // lights interpolation during morph
+    if (isTrans && lights && lights.userData) {
+        lights.userData._prog = (lights.userData._prog || 0) + morphSpeed;
+        const lp = Math.min(1, lights.userData._prog);
+        const eased = lp >= 1 ? 1 : 1 - Math.pow(1 - lp, 3);
+        const from = lights.userData.from;
+        const to = lights.userData.to;
+        const lpos = lights.geometry.attributes.position.array;
+        const len = Math.min(lpos.length, to.length);
+        for (let i = 0; i < len; i++) {
+            lpos[i] = from[i] + (to[i] - from[i]) * eased;
+        }
+        lights.geometry.attributes.position.needsUpdate = true;
+    }
+
+    // particle morph interpolation
+    if (isTrans && particles.userData) {
+        prog += morphSpeed;
+        const eased = prog >= 1 ? 1 : 1 - Math.pow(1 - prog, 3);
+        const { from, to } = particles.userData;
+        if (to) {
+            const particleArr = particles.geometry.attributes.position.array;
+            const sparkleArr = sparkles.geometry.attributes.position.array;
+            for (let i = 0; i < particleArr.length; i++) {
+                const val = from[i] + (to[i] - from[i]) * eased;
+                particleArr[i] = val;
+                if (i < sparkleArr.length) {
+                    sparkleArr[i] = val;
+                }
+            }
+            particles.geometry.attributes.position.needsUpdate = true;
+            sparkles.geometry.attributes.position.needsUpdate = true;
+        }
+        if (prog >= 1) {
+            currentPattern = particles.userData.next;
+            isTrans = false;
+            // ensure lights are placed cleanly on final pattern
+            const finalPts = PATTERNS[currentPattern](PARTICLE_COUNT);
+            placeLightsOnPattern(finalPts, lights.geometry);
+            lights.userData = null;
+        }
+    }
+
+    composer.render(dt);
+}
+
+/* ---------- start ---------- */
+init();
+animate();
+</script>
