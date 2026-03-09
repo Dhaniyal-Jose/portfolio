@@ -12,6 +12,7 @@ import setSplitText from "./utils/splitText";
 import SnowEffect from "./SnowEffect";
 
 const TechStack = lazy(() => import("./TechStack"));
+const ParticleTree = lazy(() => import("./ParticleTree"));
 
 const MainContainer = ({ children }: PropsWithChildren) => {
   const [isDesktopView, setIsDesktopView] = useState<boolean>(
@@ -48,6 +49,11 @@ const MainContainer = ({ children }: PropsWithChildren) => {
             {isDesktopView && (
               <Suspense fallback={<div>Loading....</div>}>
                 <TechStack />
+              </Suspense>
+            )}
+            {isDesktopView && (
+              <Suspense fallback={<div></div>}>
+                <ParticleTree />
               </Suspense>
             )}
             <Contact />
