@@ -155,3 +155,72 @@ html.lenis body {
 .lenis.lenis-smooth iframe {
   pointer-events: none;
 }
+
+/* ===========================
+   SNOW TOGGLE BUTTON
+=========================== */
+.snow-toggle {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 15, 26, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px 14px;
+  border-radius: 50px;
+  color: #fff;
+  font-family: 'Geist', sans-serif;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.snow-toggle:hover {
+  background: rgba(127, 64, 255, 0.15);
+  border-color: rgba(127, 64, 255, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(127, 64, 255, 0.2);
+}
+
+.snow-toggle>* {
+  pointer-events: none;
+}
+
+.snow-toggle-icon {
+  font-size: 16px;
+  line-height: 1;
+  transition: transform 0.5s ease;
+}
+
+.snow-toggle:hover .snow-toggle-icon {
+  transform: rotate(180deg);
+}
+
+.snow-toggle-text {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.6);
+  transition: color 0.3s ease;
+}
+
+.snow-toggle.active .snow-toggle-text {
+  color: #a87aff;
+}
+
+.snow-toggle:not(.active) .snow-toggle-icon {
+  opacity: 0.5;
+}
+
+@media only screen and (max-width: 600px) {
+  .snow-toggle {
+    top: 16px;
+    right: 16px;
+    padding: 6px 10px;
+  }
+}

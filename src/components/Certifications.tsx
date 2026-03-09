@@ -88,7 +88,7 @@ const Certifications = () => {
     }, [selected]);
 
     return (
-        <div className="cert-section section-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div id="certifications" className="cert-section section-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div className="cert-header">
                 <h2>My <span>certifications</span></h2>
                 <p>Hover to pause · Click the front card to view</p>

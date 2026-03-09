@@ -19,6 +19,7 @@ const MainContainer = ({ children }: PropsWithChildren) => {
   const [isDesktopView, setIsDesktopView] = useState<boolean>(
     window.innerWidth > 1024
   );
+  const [isSnowing, setIsSnowing] = useState<boolean>(false);
 
   useEffect(() => {
     const resizeHandler = () => {
@@ -35,7 +36,19 @@ const MainContainer = ({ children }: PropsWithChildren) => {
   return (
     <div className="container-main">
       <Cursor />
-      <SnowEffect />
+      {isSnowing && <SnowEffect />}
+
+      {/* Snow Toggle Button */}
+      <button
+        className={`snow-toggle ${isSnowing ? 'active' : ''}`}
+        onClick={() => setIsSnowing(!isSnowing)}
+        aria-label="Toggle snow effect"
+        title={isSnowing ? "Turn Snow Off" : "Turn Snow On"}
+      >
+        <span className="snow-toggle-icon">❄️</span>
+        <span className="snow-toggle-text">{isSnowing ? "ON" : "OFF"}</span>
+      </button>
+
       <Navbar />
       <SocialIcons />
       {isDesktopView && children}

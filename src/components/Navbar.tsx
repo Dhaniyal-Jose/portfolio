@@ -63,7 +63,9 @@ const Navbar = () => {
           />
         </a>
         <a
-          href="mailto:dhaniyaljosek@gmail.com"
+          href="https://mail.google.com/mail/?view=cm&fs=1&to=dhaniyaljosek@gmail.com"
+          target="_blank"
+          rel="noopener noreferrer"
           className="navbar-connect"
           data-cursor="disable"
         >
@@ -73,6 +75,16 @@ const Navbar = () => {
           <li>
             <a data-href="#about" href="#about">
               <HoverLinks text="ABOUT" />
+            </a>
+          </li>
+          <li>
+            <a data-href="#career" href="#career">
+              <HoverLinks text="CAREER" />
+            </a>
+          </li>
+          <li>
+            <a data-href="#certifications" href="#certifications">
+              <HoverLinks text="CERTIFICATIONS" />
             </a>
           </li>
           <li>
