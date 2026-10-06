@@ -25,4 +25,6 @@ dist-ssr
 .npmrc
 
 backup/
+tmp/
+preview/
 .env
