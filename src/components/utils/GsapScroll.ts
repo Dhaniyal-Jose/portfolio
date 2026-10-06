@@ -5,10 +5,6 @@ export function setCharTimeline(
   character: THREE.Object3D<THREE.Object3DEventMap> | null,
   camera: THREE.PerspectiveCamera
 ) {
-  let intensity: number = 0;
-  setInterval(() => {
-    intensity = Math.random();
-  }, 200);
   const tl1 = gsap.timeline({
     scrollTrigger: {
       trigger: ".landing-section",
@@ -53,7 +49,7 @@ export function setCharTimeline(
       object.material.opacity = 0;
       object.material.emissive.set("#C8BFFF");
       gsap.timeline({ repeat: -1, repeatRefresh: true }).to(object.material, {
-        emissiveIntensity: () => intensity * 8,
+        emissiveIntensity: () => Math.random() * 8,
         duration: () => Math.random() * 0.6,
         delay: () => Math.random() * 0.1,
       });
@@ -145,8 +141,8 @@ export function setAllTimeline() {
   careerTimeline
     .fromTo(
       ".career-timeline",
-      { maxHeight: "10%" },
-      { maxHeight: "100%", duration: 0.5 },
+      { clipPath: "inset(0 0 90% 0)" },
+      { clipPath: "inset(0 0 0% 0)", duration: 0.5 },
       0
     )
 

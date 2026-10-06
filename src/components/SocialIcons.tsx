@@ -11,49 +11,35 @@ import HoverLinks from "./HoverLinks";
 
 const SocialIcons = () => {
   useEffect(() => {
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
     const social = document.getElementById("social") as HTMLElement;
-
+    const cleanups: (() => void)[] = [];
     social.querySelectorAll("span").forEach((item) => {
       const elem = item as HTMLElement;
       const link = elem.querySelector("a") as HTMLElement;
 
-      const rect = elem.getBoundingClientRect();
-      let mouseX = rect.width / 2;
-      let mouseY = rect.height / 2;
-      let currentX = 0;
-      let currentY = 0;
-
-      const updatePosition = () => {
-        currentX += (mouseX - currentX) * 0.1;
-        currentY += (mouseY - currentY) * 0.1;
-
-        link.style.setProperty("--siLeft", `${currentX}px`);
-        link.style.setProperty("--siTop", `${currentY}px`);
-
-        requestAnimationFrame(updatePosition);
-      };
-
       const onMouseMove = (e: MouseEvent) => {
+        const rect = elem.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
         if (x < 40 && x > 10 && y < 40 && y > 5) {
-          mouseX = x;
-          mouseY = y;
-        } else {
-          mouseX = rect.width / 2;
-          mouseY = rect.height / 2;
+          link.style.setProperty("--siLeft", `${x}px`);
+          link.style.setProperty("--siTop", `${y}px`);
         }
       };
-
-      document.addEventListener("mousemove", onMouseMove);
-
-      updatePosition();
-
-      return () => {
-        elem.removeEventListener("mousemove", onMouseMove);
+      const reset = () => {
+        link.style.setProperty("--siLeft", "50%");
+        link.style.setProperty("--siTop", "50%");
       };
+      elem.addEventListener("mousemove", onMouseMove);
+      elem.addEventListener("mouseleave", reset);
+      cleanups.push(() => {
+        elem.removeEventListener("mousemove", onMouseMove);
+        elem.removeEventListener("mouseleave", reset);
+      });
     });
+    return () => cleanups.forEach((cleanup) => cleanup());
   }, []);
 
   return (
@@ -80,7 +66,7 @@ const SocialIcons = () => {
           </a>
         </span>
       </div>
-      <a className="resume-button" href="https://drive.google.com/file/d/11A0dHncZUuW82aNwRws6rw1RjeIUbQ_S/view?usp=drivesdk" target="_blank">
+      <a className="resume-button" href="/resume/Dhaniyal_Jose_Resume.pdf" target="_blank" rel="noopener noreferrer" aria-label="Open Dhaniyal Jose's resume PDF">
         <HoverLinks text="RESUME" />
         <span>
           <TbNotes />

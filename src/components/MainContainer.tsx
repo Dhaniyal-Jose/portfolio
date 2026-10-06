@@ -11,9 +11,10 @@ import Work from "./Work";
 import Certifications from "./Certifications";
 import setSplitText from "./utils/splitText";
 import SnowEffect from "./SnowEffect";
+import ScrollAtmosphere from "./ScrollAtmosphere";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 const TechStack = lazy(() => import("./TechStack"));
-const ParticleTree = lazy(() => import("./ParticleTree"));
 
 const MainContainer = ({ children }: PropsWithChildren) => {
   const [isDesktopView, setIsDesktopView] = useState<boolean>(
@@ -22,19 +23,29 @@ const MainContainer = ({ children }: PropsWithChildren) => {
   const [isSnowing, setIsSnowing] = useState<boolean>(false);
 
   useEffect(() => {
+    let resizeTimer: ReturnType<typeof setTimeout>;
+    let previousWidth = window.innerWidth;
     const resizeHandler = () => {
-      setSplitText();
+      if (window.innerWidth === previousWidth) return;
+      previousWidth = window.innerWidth;
       setIsDesktopView(window.innerWidth > 1024);
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        setSplitText();
+        ScrollTrigger.refresh();
+      }, 180);
     };
-    resizeHandler();
+    setSplitText();
     window.addEventListener("resize", resizeHandler);
     return () => {
       window.removeEventListener("resize", resizeHandler);
+      clearTimeout(resizeTimer);
     };
-  }, [isDesktopView]);
+  }, []);
 
   return (
     <div className="container-main">
+      <ScrollAtmosphere />
       <Cursor />
       {isSnowing && <SnowEffect />}
 
@@ -64,11 +75,6 @@ const MainContainer = ({ children }: PropsWithChildren) => {
             {isDesktopView && (
               <Suspense fallback={<div>Loading....</div>}>
                 <TechStack />
-              </Suspense>
-            )}
-            {isDesktopView && (
-              <Suspense fallback={<div></div>}>
-                <ParticleTree />
               </Suspense>
             )}
             <Contact />

@@ -10,20 +10,23 @@ const Loading = ({ percent }: { percent: number }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [clicked, setClicked] = useState(false);
 
-  if (percent >= 100) {
-    setTimeout(() => {
+  useEffect(() => {
+    if (percent < 100) return;
+    const readyTimer = setTimeout(() => {
       setLoaded(true);
-      setTimeout(() => {
-        setIsLoaded(true);
-      }, 1000);
     }, 600);
-  }
+    const revealTimer = setTimeout(() => setIsLoaded(true), 1600);
+    return () => { clearTimeout(readyTimer); clearTimeout(revealTimer); };
+  }, [percent]);
 
   useEffect(() => {
+    if (!isLoaded) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
     import("./utils/initialFX").then((module) => {
-      if (isLoaded) {
+      if (!cancelled) {
         setClicked(true);
-        setTimeout(() => {
+        timer = setTimeout(() => {
           if (module.initialFX) {
             module.initialFX();
           }
@@ -31,7 +34,8 @@ const Loading = ({ percent }: { percent: number }) => {
         }, 900);
       }
     });
-  }, [isLoaded]);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [isLoaded, setIsLoading]);
 
   function handleMouseMove(e: React.MouseEvent<HTMLElement>) {
     const { currentTarget: target } = e;
@@ -47,14 +51,14 @@ const Loading = ({ percent }: { percent: number }) => {
       <div className="loading-header">
         <a href="/#" className="loader-title" data-cursor="disable">
           <img
-            src="/images/profile.jpg"
+            src="/images/profile-neon-purple.png"
             alt="Dhaniyal Jose"
             style={{
               width: "128px",
               height: "128px",
               borderRadius: "50%",
-              objectFit: "cover",
-              objectPosition: "center 10%",
+              objectFit: "contain",
+              objectPosition: "center",
               border: "2px solid var(--accentColor)",
               display: "block",
             }}
@@ -143,5 +147,6 @@ export const setProgress = (setLoading: (value: number) => void) => {
       }, 2);
     });
   }
-  return { loaded, percent, clear };
+  const cancel = () => clearInterval(interval);
+  return { loaded, percent, clear, cancel };
 };

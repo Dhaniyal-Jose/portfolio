@@ -103,9 +103,11 @@
   position: absolute;
   max-width: 1920px;
   max-height: 1080px;
-  transform: translateX(-50%);
+  transform: none;
   width: 100%;
-  left: 50%;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
   z-index: 0;
   bottom: 50px;
   pointer-events: inherit;
@@ -159,7 +161,7 @@
 .landing-intro {
   position: absolute;
   z-index: 9;
-  top: 12%;
+  top: max(100px, 15%);
   left: 0;
 }
 .landing-intro h2 {

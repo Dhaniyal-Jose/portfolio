@@ -47,8 +47,8 @@ const Career = () => {
               <h3>2022–2026</h3>
             </div>
             <p>
-              Currently pursuing a Bachelor's degree in Computer Science and Engineering,
-              building a strong foundation in core computer science principles, algorithms, and software development.
+              Completed a Bachelor's degree in Computer Science and Engineering,
+              gaining a strong foundation in core computer science principles, algorithms, and software development.
             </p>
           </div>
 
@@ -94,6 +94,19 @@ const Career = () => {
               Built console-based applications and implemented CRUD operations using
               basic programming concepts like loops, conditionals, debugging, and simple
               file handling while creating small utility programs.
+            </p>
+          </div>
+
+          <div className="career-info-box">
+            <div className="career-info-in">
+              <div className="career-role">
+                <h4>IT Support Engineer</h4>
+                <h5>SG Solutions</h5>
+              </div>
+              <h3>2026–<br />present</h3>
+            </div>
+            <p>
+              Currently working as an IT Support Engineer at SG Solutions.
             </p>
           </div>
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import setCharacter from "./utils/character";
 import setLighting from "./utils/lighting";
@@ -12,27 +12,34 @@ import {
 } from "./utils/mouseUtils";
 import setAnimations from "./utils/animationUtils";
 import { setProgress } from "../Loading";
+import gsap from "gsap";
+import { setCharTimeline, setAllTimeline } from "../utils/GsapScroll";
 
 const Scene = () => {
   const canvasDiv = useRef<HTMLDivElement | null>(null);
   const hoverDivRef = useRef<HTMLDivElement>(null);
-  const sceneRef = useRef(new THREE.Scene());
   const { setLoading } = useLoading();
 
-  const [character, setChar] = useState<THREE.Object3D | null>(null);
   useEffect(() => {
     if (canvasDiv.current) {
-      let rect = canvasDiv.current.getBoundingClientRect();
-      let container = { width: rect.width, height: rect.height };
+      const rect = canvasDiv.current.getBoundingClientRect();
+      const container = { width: rect.width, height: rect.height };
       const aspect = container.width / container.height;
-      const scene = sceneRef.current;
+      const scene = new THREE.Scene();
+      const host = canvasDiv.current;
+      let disposed = false;
+      let frame = 0;
+      let introTimer: ReturnType<typeof setTimeout>;
+      let removeHover: (() => void) | undefined;
+      let visible = true;
+      const context = gsap.context(() => {});
 
       const renderer = new THREE.WebGLRenderer({
         alpha: true,
         antialias: true,
       });
       renderer.setSize(container.width, container.height);
-      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, window.innerWidth <= 1024 ? 1.25 : 1.5));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1;
       canvasDiv.current.appendChild(renderer.domElement);
@@ -50,30 +57,42 @@ const Scene = () => {
       const clock = new THREE.Clock();
 
       const light = setLighting(scene);
-      let progress = setProgress((value) => setLoading(value));
-      const { loadCharacter } = setCharacter(renderer, scene, camera);
+      const progress = setProgress(setLoading);
+      const { loadCharacter } = setCharacter(renderer, scene, camera, () => !disposed);
 
       loadCharacter().then((gltf) => {
+        if (disposed) return;
         if (gltf) {
           const animations = setAnimations(gltf);
-          hoverDivRef.current && animations.hover(gltf, hoverDivRef.current);
+          if (hoverDivRef.current) removeHover = animations.hover(gltf, hoverDivRef.current);
           mixer = animations.mixer;
-          let character = gltf.scene;
-          setChar(character);
+          const character = gltf.scene;
           scene.add(character);
+          context.add(() => {
+            setCharTimeline(character, camera);
+            setAllTimeline();
+          });
           headBone = character.getObjectByName("spine006") || null;
           screenLight = character.getObjectByName("screenlight") || null;
           progress.loaded().then(() => {
-            setTimeout(() => {
+            if (disposed) return;
+            introTimer = setTimeout(() => {
               light.turnOnLights();
               animations.startIntro();
             }, 2500);
           });
-          window.addEventListener("resize", () =>
-            handleResize(renderer, camera, canvasDiv, character)
-          );
         }
+      }).catch((error) => {
+        if (disposed) return;
+        console.error("Could not load the character", error);
+        progress.clear();
       });
+      let resizeTimer: ReturnType<typeof setTimeout>;
+      const onResize = () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => handleResize(renderer, camera, canvasDiv), 180);
+      };
+      window.addEventListener("resize", onResize);
 
       let mouse = { x: 0, y: 0 },
         interpolation = { x: 0.1, y: 0.2 };
@@ -81,15 +100,7 @@ const Scene = () => {
       const onMouseMove = (event: MouseEvent) => {
         handleMouseMove(event, (x, y) => (mouse = { x, y }));
       };
-      let debounce: number | undefined;
-      const onTouchStart = (event: TouchEvent) => {
-        const element = event.target as HTMLElement;
-        debounce = setTimeout(() => {
-          element?.addEventListener("touchmove", (e: TouchEvent) =>
-            handleTouchMove(e, (x, y) => (mouse = { x, y }))
-          );
-        }, 200);
-      };
+      const onTouchMove = (event: TouchEvent) => handleTouchMove(event, (x, y) => (mouse = { x, y }));
 
       const onTouchEnd = () => {
         handleTouchEnd((x, y, interpolationX, interpolationY) => {
@@ -98,16 +109,18 @@ const Scene = () => {
         });
       };
 
-      document.addEventListener("mousemove", (event) => {
-        onMouseMove(event);
-      });
+      document.addEventListener("mousemove", onMouseMove, { passive: true });
       const landingDiv = document.getElementById("landingDiv");
       if (landingDiv) {
-        landingDiv.addEventListener("touchstart", onTouchStart);
-        landingDiv.addEventListener("touchend", onTouchEnd);
+        landingDiv.addEventListener("touchmove", onTouchMove, { passive: true });
+        landingDiv.addEventListener("touchend", onTouchEnd, { passive: true });
       }
+      const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; });
+      observer.observe(host);
       const animate = () => {
-        requestAnimationFrame(animate);
+        frame = requestAnimationFrame(animate);
+        const delta = Math.min(clock.getDelta(), 0.05);
+        if (!visible || document.hidden) return;
         if (headBone) {
           handleHeadRotation(
             headBone,
@@ -117,9 +130,8 @@ const Scene = () => {
             interpolation.y,
             THREE.MathUtils.lerp
           );
-          light.setPointLight(screenLight);
+          if (screenLight) light.setPointLight(screenLight);
         }
-        const delta = clock.getDelta();
         if (mixer) {
           mixer.update(delta);
         }
@@ -127,23 +139,39 @@ const Scene = () => {
       };
       animate();
       return () => {
-        clearTimeout(debounce);
+        disposed = true;
+        cancelAnimationFrame(frame);
+        clearTimeout(introTimer);
+        clearTimeout(resizeTimer);
+        progress.cancel();
+        removeHover?.();
+        observer.disconnect();
+        context.revert();
+        mixer?.stopAllAction();
+        scene.traverse((object) => {
+          const mesh = object as THREE.Mesh;
+          mesh.geometry?.dispose();
+          if (mesh.material) {
+            const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+            materials.forEach((material) => {
+              (material as THREE.MeshBasicMaterial).map?.dispose();
+              material.dispose();
+            });
+          }
+        });
+        scene.environment?.dispose();
         scene.clear();
         renderer.dispose();
-        window.removeEventListener("resize", () =>
-          handleResize(renderer, camera, canvasDiv, character!)
-        );
-        if (canvasDiv.current) {
-          canvasDiv.current.removeChild(renderer.domElement);
-        }
+        window.removeEventListener("resize", onResize);
+        renderer.domElement.remove();
+        document.removeEventListener("mousemove", onMouseMove);
         if (landingDiv) {
-          document.removeEventListener("mousemove", onMouseMove);
-          landingDiv.removeEventListener("touchstart", onTouchStart);
+          landingDiv.removeEventListener("touchmove", onTouchMove);
           landingDiv.removeEventListener("touchend", onTouchEnd);
         }
       };
     }
-  }, []);
+  }, [setLoading]);
 
   return (
     <>

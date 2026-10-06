@@ -14,6 +14,10 @@
   transition: top 0.3s ease-out, left 0.3s ease-out, width 0.3s ease-out,
     height 0.3s ease-out;
 }
+
+@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .cursor-main { display: none; }
+}
 .cursor-icons {
   top: 10px;
   left: 10px;

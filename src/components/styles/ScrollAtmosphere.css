@@ -1,0 +1,9 @@
+.scroll-atmosphere { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: -1; background: #080b13; }
+.atmosphere-glow { position: absolute; width: min(105vw, 1500px); height: min(100vh, 1000px); will-change: transform; }
+.atmosphere-violet { left: -25%; top: -28%; background: radial-gradient(ellipse, rgba(123, 78, 213, .22), transparent 67%); }
+.atmosphere-cyan { right: -35%; bottom: -35%; background: radial-gradient(ellipse, rgba(42, 156, 174, .15), transparent 67%); }
+.atmosphere-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(180, 197, 242, .035) 1px, transparent 1px), linear-gradient(90deg, rgba(180, 197, 242, .035) 1px, transparent 1px); background-size: 80px 80px; mask-image: linear-gradient(to bottom, #000, transparent 90%); }
+.atmosphere-vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, transparent 25%, rgba(8, 11, 19, .55)); }
+.scroll-progress { position: fixed; top: 0; left: 0; width: 100%; height: 2px; z-index: 10001; transform: scaleX(0); transform-origin: left; background: linear-gradient(90deg, #bb98ff, #77dce1); pointer-events: none; }
+@media (max-width: 600px) { .atmosphere-grid { background-size: 56px 56px; } }
+@media (prefers-reduced-motion: reduce) { .atmosphere-glow { will-change: auto; } }

@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import "./styles/Certifications.css";
-
 interface Certificate {
     id: number;
     label: string;
@@ -42,126 +42,134 @@ const certificates: Certificate[] = [
 ];
 
 const TOTAL = certificates.length;
-const ANGLE_STEP = 360 / TOTAL;   // ~11.6° between cards
-const RADIUS = 350;            // px — compact radius so cards don't touch screen edges
-const SPEED = 0.016;          // degrees per millisecond
-
-// Smooth easing: map angular distance [0, 180] → [0, 1]
-function frontness(abs: number): number {
-    // 1 at 0° (front), 0 at 90°+
-    return Math.max(0, 1 - abs / 80);
-}
+const ANGLE_STEP = 360 / TOTAL;
+const SPEED = 0.009;
 
 const Certifications = () => {
+    const sceneRef = useRef<HTMLDivElement>(null);
+    const cardsRef = useRef<(HTMLButtonElement | null)[]>([]);
     const angleRef = useRef(0);
-    const rafRef = useRef<number>(0);
-    const lastTs = useRef<number | null>(null);
-    const [angle, setAngle] = useState(0);
     const [paused, setPaused] = useState(false);
     const [selected, setSelected] = useState<Certificate | null>(null);
+    const [activeIndex, setActiveIndex] = useState(0);
+    const [inView, setInView] = useState(false);
+    const [reducedMotion, setReducedMotion] = useState(false);
+    const [stepVersion, setStepVersion] = useState(0);
+    const closeRef = useRef<HTMLButtonElement>(null);
+    const openerRef = useRef<HTMLElement | null>(null);
+    const hoverRef = useRef(false);
+    const focusRef = useRef(false);
 
-    const tick = useCallback((ts: number) => {
-        if (lastTs.current === null) lastTs.current = ts;
-        const dt = ts - lastTs.current;
-        lastTs.current = ts;
-        angleRef.current = (angleRef.current + dt * SPEED) % 360;
-        setAngle(angleRef.current);
-        rafRef.current = requestAnimationFrame(tick);
+    useEffect(() => {
+        const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+        const update = () => setReducedMotion(media.matches);
+        update();
+        media.addEventListener("change", update);
+        const observer = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), { rootMargin: "100px" });
+        if (sceneRef.current) observer.observe(sceneRef.current);
+        return () => { observer.disconnect(); media.removeEventListener("change", update); };
     }, []);
 
     useEffect(() => {
-        if (!paused) {
-            lastTs.current = null;
-            rafRef.current = requestAnimationFrame(tick);
-        } else {
-            cancelAnimationFrame(rafRef.current);
-        }
-        return () => cancelAnimationFrame(rafRef.current);
-    }, [paused, tick]);
+        let frame = 0;
+        let lastTime = 0;
+        let lastPaint = 0;
+        let currentIndex = -1;
+        const paint = () => {
+            const width = sceneRef.current?.clientWidth ?? 900;
+            const radius = Math.min(640, Math.max(240, width * 0.7));
+            cardsRef.current.forEach((card, index) => {
+                if (!card) return;
+                const raw = (index * ANGLE_STEP - angleRef.current + 720) % 360;
+                const norm = raw > 180 ? raw - 360 : raw;
+                const distance = Math.abs(norm);
+                const visible = distance < 85;
+                card.style.visibility = visible ? "visible" : "hidden";
+                card.tabIndex = distance < ANGLE_STEP / 2 ? 0 : -1;
+                if (!visible) return;
+                const radians = norm * Math.PI / 180;
+                const prominence = Math.max(0, 1 - distance / 85);
+                const x = Math.sin(radians) * radius;
+                const z = (Math.cos(radians) - 1) * radius;
+                card.style.transform = `translate3d(${x}px, 0, ${z}px) rotateY(${norm}deg) scale(${0.72 + prominence * 0.28})`;
+                card.style.opacity = `${0.12 + prominence * 0.88}`;
+                card.style.zIndex = `${Math.round(100 - distance)}`;
+                card.classList.toggle("cert-card--front", distance < ANGLE_STEP / 2);
+            });
+            const index = Math.round(angleRef.current / ANGLE_STEP) % TOTAL;
+            if (index !== currentIndex) { currentIndex = index; setActiveIndex(index); }
+        };
+        const tick = (time: number) => {
+            const delta = lastTime ? Math.min(time - lastTime, 48) : 0;
+            lastTime = time;
+            if (!document.hidden && !hoverRef.current && !focusRef.current) {
+                angleRef.current = (angleRef.current + delta * SPEED) % 360;
+                if (time - lastPaint >= 30) { paint(); lastPaint = time; }
+            }
+            frame = requestAnimationFrame(tick);
+        };
+        paint();
+        if (inView && !paused && !selected && !reducedMotion) frame = requestAnimationFrame(tick);
+        window.addEventListener("resize", paint);
+        return () => { cancelAnimationFrame(frame); window.removeEventListener("resize", paint); };
+    }, [inView, paused, selected, reducedMotion, stepVersion]);
 
-    // Close lightbox on Escape key
     useEffect(() => {
         if (!selected) return;
-        const handler = (e: KeyboardEvent) => e.key === "Escape" && setSelected(null);
+        openerRef.current = document.activeElement as HTMLElement;
+        closeRef.current?.focus();
+        const handler = (event: KeyboardEvent) => {
+            if (event.key === "Escape") setSelected(null);
+            if (event.key === "Tab") { event.preventDefault(); closeRef.current?.focus(); }
+        };
         window.addEventListener("keydown", handler);
-        return () => window.removeEventListener("keydown", handler);
+        return () => { window.removeEventListener("keydown", handler); openerRef.current?.focus(); };
     }, [selected]);
 
+    const step = (direction: number) => {
+        setPaused(true);
+        const next = (Math.round(angleRef.current / ANGLE_STEP) + direction + TOTAL) % TOTAL;
+        angleRef.current = next * ANGLE_STEP;
+        setStepVersion((value) => value + 1);
+    };
+
     return (
-        <div id="certifications" className="cert-section section-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <section id="certifications" className="cert-section section-container" aria-labelledby="cert-title">
             <div className="cert-header">
-                <h2>My <span>certifications</span></h2>
-                <p>Hover to pause · Click the front card to view</p>
+                <span className="cert-eyebrow">LEARNING. BUILDING. GROWING.</span>
+                <h2 id="cert-title">My <span>certifications</span></h2>
+                <p>A collection of milestones along the way.</p>
             </div>
-
-            {/* 3D scene — cards sit directly here, positioned by JS transforms */}
-            <div
-                className="cert-scene"
-                onMouseEnter={() => setPaused(true)}
-                onMouseLeave={() => setPaused(false)}
-            >
-                {certificates.map((cert, index) => {
-                    // Angular position in the cylinder relative to the front (0°)
-                    const raw = (index * ANGLE_STEP - angle + 720) % 360;
-                    const norm = raw > 180 ? raw - 360 : raw;   // –180 … +180
-                    const abs = Math.abs(norm);
-
-                    const f = frontness(abs);             // 0–1, 1 = fully front
-                    const scale = 0.38 + f * 0.82;           // 0.38 (shelf) → 1.2 (front)
-                    const opacity = 0.06 + f * 0.94;           // nearly invisible in back → fully visible
-                    const blur = (1 - f) * 6;               // 6px blur on shelf, sharp at front
-                    const zIdx = Math.round(100 - abs);
-
-                    const isFront = abs < 22;
-
-                    return (
-                        <div
-                            key={cert.id}
-                            className={`cert-card${isFront ? " cert-card--front" : ""}`}
-                            style={{
-                                transform: `rotateY(${norm}deg) translateZ(${RADIUS}px) scale(${scale})`,
-                                opacity,
-                                filter: blur > 0.1 ? `blur(${blur.toFixed(1)}px)` : "none",
-                                zIndex: zIdx,
-                                cursor: isFront ? "pointer" : "default",
-                                pointerEvents: isFront ? "auto" : "none",
-                            }}
-                            onClick={() => isFront && setSelected(cert)}
-                            title={isFront ? cert.label : ""}
-                        >
-                            <img src={cert.image} alt={cert.label} loading="lazy" />
-                            {isFront && (
-                                <div className="cert-card-label">{cert.label}</div>
-                            )}
-                        </div>
-                    );
-                })}
-            </div>
-
-            {/* Lightbox */}
-            {selected && (
-                <div
-                    className="cert-lightbox-overlay"
-                    onClick={() => setSelected(null)}
-                >
-                    <div
-                        className="cert-lightbox-content"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button
-                            className="cert-lightbox-close"
-                            onClick={() => setSelected(null)}
-                            aria-label="Close"
-                        >
-                            ✕
+            <div className="cert-stage">
+                <div className="cert-orbit" aria-hidden="true" />
+                <div ref={sceneRef} className="cert-scene" onPointerEnter={(event) => { if (event.pointerType === "mouse") hoverRef.current = true; }} onPointerLeave={() => { hoverRef.current = false; }} onFocusCapture={() => { focusRef.current = true; }} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) focusRef.current = false; }}>
+                    {certificates.map((cert, index) => (
+                        <button key={cert.id} type="button" ref={(element) => { cardsRef.current[index] = element; }} className="cert-card" onClick={() => setSelected(cert)} aria-label={`View ${cert.label}`}>
+                            <img src={cert.image} alt={cert.label} loading="lazy" decoding="async" />
                         </button>
+                    ))}
+                </div>
+            </div>
+            <div className="cert-caption">
+                <span>{String(activeIndex + 1).padStart(2, "0")} / {TOTAL}</span>
+                <p>{certificates[activeIndex].label}</p>
+            </div>
+            <div className="cert-controls">
+                <button type="button" onClick={() => step(-1)} aria-label="Previous certificate">←</button>
+                <button type="button" onClick={() => setPaused(!paused)} disabled={reducedMotion} aria-label={paused ? "Play certificate rotation" : "Pause certificate rotation"}>{paused || reducedMotion ? "Play" : "Pause"}</button>
+                <button type="button" onClick={() => step(1)} aria-label="Next certificate">→</button>
+            </div>
+            <p className="cert-hint">Select a certificate to take a closer look</p>
+            {selected && createPortal(
+                <div className="cert-lightbox-overlay" data-lenis-prevent onClick={() => setSelected(null)}>
+                    <div className="cert-lightbox-content" role="dialog" aria-modal="true" aria-label={selected.label} onClick={(event) => event.stopPropagation()}>
+                        <button ref={closeRef} className="cert-lightbox-close" onClick={() => setSelected(null)} aria-label="Close certificate">×</button>
                         <img src={selected.image} alt={selected.label} />
                         <p className="cert-lightbox-label">{selected.label}</p>
                     </div>
-                </div>
+                </div>, document.body
             )}
-        </div>
+        </section>
     );
 };
-
 export default Certifications;

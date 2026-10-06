@@ -1,322 +1,36 @@
-/* ===========================
-   CERTIFICATIONS SECTION
-=========================== */
-.cert-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 120px 0px 200px;
-    position: relative;
-}
-
-/* Heading */
-.cert-header {
-    text-align: center;
-    margin-bottom: 60px;
-}
-
-.cert-header h2 {
-    font-size: 70px;
-    line-height: 70px;
-    font-weight: 400;
-    text-align: center;
-    background: linear-gradient(0deg, #7f40ff, #ffffff);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-    margin: 0 0 20px 0;
-}
-
-.cert-header h2>span {
-    font-family: "Geist", sans-serif;
-    font-weight: 300;
-}
-
-.cert-header p {
-    font-size: 14px;
-    color: #666;
-    font-weight: 300;
-    letter-spacing: 1px;
-    margin: 0;
-    text-transform: uppercase;
-}
-
-.cert-scene {
-    width: 100%;
-    height: 300px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    perspective: 800px;
-    perspective-origin: center center;
-    position: relative;
-    padding: 0 40px;
-}
-
-/* ===========================
-   CARDS
-=========================== */
-.cert-card {
-    position: absolute;
-    top: calc(50% - 90px);
-    left: calc(50% - 65px);
-    width: 130px;
-    height: 180px;
-    border-radius: 12px;
-    overflow: hidden;
-    will-change: transform, opacity, filter;
-    transform-origin: center center;
-    transition: box-shadow 0.3s ease;
-}
-
-/* Front card glow */
-.cert-card--front {
-    box-shadow:
-        0 0 25px 5px rgba(127, 64, 255, 0.55),
-        0 0 60px 15px rgba(170, 66, 255, 0.25),
-        0 20px 40px rgba(0, 0, 0, 0.6);
-}
-
-.cert-card img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    border-radius: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.07);
-}
-
-/* Label — only shown on front card */
-.cert-card-label {
-    position: absolute;
-    bottom: -40px;
-    left: 0;
-    right: 0;
-    text-align: center;
-    font-size: 12px;
-    font-weight: 300;
-    color: rgba(255, 255, 255, 0.55);
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    padding: 0 8px;
-}
-
-/* ===========================
-   LIGHTBOX MODAL
-=========================== */
-.cert-lightbox-overlay {
-    position: fixed;
-    inset: 0;
-    background: radial-gradient(circle at 50% 120%, rgba(127, 64, 255, 0.15) 0%, rgba(8, 5, 15, 0.95) 80%);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    box-sizing: border-box;
-    animation: certFadeIn 0.3s ease;
-    overflow: hidden;
-    perspective: 1200px;
-}
-
-.cert-lightbox-overlay::before,
-.cert-lightbox-overlay::after {
-    content: '';
-    position: absolute;
-    width: 60vw;
-    height: 60vw;
-    border-radius: 50%;
-    filter: blur(120px);
-    z-index: -1;
-    opacity: 0.6;
-    pointer-events: none;
-    animation: certFloatGlow 15s ease-in-out infinite alternate;
-}
-
-.cert-lightbox-overlay::before {
-    background: radial-gradient(circle, rgba(127, 64, 255, 0.4) 0%, rgba(0, 0, 0, 0) 70%);
-    top: -20%;
-    left: -10%;
-}
-
-.cert-lightbox-overlay::after {
-    background: radial-gradient(circle, rgba(64, 127, 255, 0.3) 0%, rgba(0, 0, 0, 0) 70%);
-    bottom: -20%;
-    right: -10%;
-    animation-delay: -5s;
-    animation-duration: 20s;
-}
-
-@keyframes certFloatGlow {
-    0% {
-        transform: translate(0, 0) scale(1);
-    }
-
-    50% {
-        transform: translate(8%, 8%) scale(1.1);
-    }
-
-    100% {
-        transform: translate(-5%, 12%) scale(0.9);
-    }
-}
-
-@keyframes certFadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-.cert-lightbox-content {
-    position: relative;
-    max-width: 860px;
-    width: 100%;
-    background: #0d0d1a;
-    border: 1px solid rgba(127, 64, 255, 0.3);
-    border-radius: 20px;
-    padding: 16px;
-    box-shadow:
-        0 0 60px rgba(127, 64, 255, 0.2),
-        0 0 120px rgba(127, 64, 255, 0.08);
-    animation: certSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), certFloat 6s ease-in-out 0.4s infinite alternate;
-    box-sizing: border-box;
-    transform-style: preserve-3d;
-}
-
-@keyframes certSlideUp {
-    from {
-        transform: translateY(28px) scale(0.96);
-        opacity: 0;
-    }
-
-    to {
-        transform: translateY(0) scale(1);
-        opacity: 1;
-    }
-}
-
-@keyframes certFloat {
-    0% {
-        transform: translateY(0) rotateX(1deg) rotateY(-1deg);
-        box-shadow: 0 0 60px rgba(127, 64, 255, 0.2), 0 0 120px rgba(127, 64, 255, 0.08);
-    }
-
-    100% {
-        transform: translateY(-12px) rotateX(-1deg) rotateY(1deg);
-        box-shadow: 0 15px 70px rgba(127, 64, 255, 0.3), 0 0 150px rgba(127, 64, 255, 0.15);
-    }
-}
-
-.cert-lightbox-content img {
-    width: 100%;
-    height: auto;
-    max-height: 80vh;
-    object-fit: contain;
-    border-radius: 12px;
-    display: block;
-}
-
-.cert-lightbox-label {
-    text-align: center;
-    margin: 12px 0 4px;
-    font-size: 13px;
-    font-weight: 300;
-    letter-spacing: 1.5px;
-    color: rgba(255, 255, 255, 0.5);
-    text-transform: uppercase;
-}
-
-.cert-lightbox-close {
-    position: absolute;
-    top: -14px;
-    right: -14px;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 1px solid rgba(127, 64, 255, 0.4);
-    background: #1a1a2e;
-    color: #fff;
-    font-size: 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s, border-color 0.2s, transform 0.2s;
-    z-index: 1;
-}
-
-.cert-lightbox-close:hover {
-    background: #7f40ff;
-    border-color: #7f40ff;
-    transform: scale(1.12);
-}
-
-/* ===========================
-   RESPONSIVE
-=========================== */
-@media only screen and (max-width: 1024px) {
-    .cert-header h2 {
-        font-size: 50px;
-        line-height: 50px;
-    }
-
-    .cert-scene {
-        height: 280px;
-        perspective: 700px;
-    }
-
-    .cert-card {
-        top: calc(50% - 77.5px);
-        left: calc(50% - 55px);
-        width: 110px;
-        height: 155px;
-    }
-}
-
-@media only screen and (max-width: 600px) {
-    .cert-section {
-        padding: 80px 0px 140px;
-    }
-
-    .cert-header h2 {
-        font-size: 40px;
-        line-height: 40px;
-    }
-
-    .cert-scene {
-        height: 240px;
-        perspective: 600px;
-    }
-
-    .cert-card {
-        top: calc(50% - 62.5px);
-        left: calc(50% - 45px);
-        width: 90px;
-        height: 125px;
-    }
-
-    .cert-lightbox-content {
-        padding: 10px;
-        border-radius: 14px;
-    }
-
-    .cert-lightbox-content img {
-        max-height: 70vh;
-    }
-
-    .cert-lightbox-close {
-        top: -12px;
-        right: -8px;
-    }
+.cert-section { display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto; padding: 130px 0 110px; position: relative; text-align: center; }
+.cert-header { margin-bottom: 30px; }
+.cert-eyebrow { display: block; color: #9a8cad; font-size: 10px; letter-spacing: 3px; margin-bottom: 20px; }
+.cert-header h2 { font-size: clamp(36px, 5vw, 70px); line-height: 1.15; font-weight: 400; margin: 0 0 20px; letter-spacing: -2px; }
+.cert-header h2 span { color: var(--accentColor); font-weight: 300; }
+.cert-header p { font-size: 14px; color: #9c9dab; margin: 0; }
+.cert-stage { position: relative; width: 100%; }
+.cert-scene { width: 100%; height: 360px; perspective: 1400px; perspective-origin: center; position: relative; overflow: clip; touch-action: pan-y; }
+.cert-orbit { position: absolute; width: 88%; height: 120px; left: 6%; bottom: 5px; border: 1px solid #b397f92b; border-radius: 50%; background: radial-gradient(ellipse, #966aff12, transparent 65%); pointer-events: none; }
+.cert-card { position: absolute; top: calc(50% - 125px); left: calc(50% - 90px); width: 180px; height: 250px; padding: 8px; border-radius: 12px; border: 1px solid #c7b8ff30; background: #181c29; box-shadow: 0 12px 30px #0006; cursor: pointer; visibility: hidden; }
+.cert-card--front { border-color: #c2a4ff99; box-shadow: 0 0 32px #9670eb26, 0 16px 40px #0008; }
+.cert-card img { width: 100%; height: 100%; object-fit: contain; display: block; border-radius: 5px; background: #f5f3ef; }
+.cert-caption { margin-top: 12px; min-height: 62px; }
+.cert-caption span { font-size: 10px; letter-spacing: 2px; color: #9a8cad; }
+.cert-caption p { margin: 6px 0 0; font-size: 15px; color: #e1dcee; }
+.cert-controls { display: flex; align-items: center; gap: 10px; }
+.cert-controls button { color: #ded5f1; font: inherit; font-size: 12px; border: 1px solid #c2a4ff2e; border-radius: 50px; background: #151725; height: 42px; min-width: 42px; padding: 0 18px; cursor: pointer; transition: background .2s, border-color .2s; }
+.cert-controls button:hover { background: #29203f; border-color: #c2a4ff88; }
+.cert-controls button:disabled { opacity: .4; cursor: default; }
+.cert-hint { font-size: 11px; color: #8d8b9a; margin-top: 18px; }
+.cert-lightbox-overlay { position: fixed; inset: 0; background: #080b13ed; z-index: 100000; display: flex; align-items: center; justify-content: center; padding: 26px; box-sizing: border-box; animation: certFadeIn .2s ease; }
+.cert-lightbox-content { position: relative; width: fit-content; max-width: 900px; max-height: 90svh; background: #121624; border: 1px solid #c2a4ff55; border-radius: 16px; padding: 14px; box-sizing: border-box; }
+.cert-lightbox-content img { max-width: 100%; width: auto; max-height: 76svh; height: auto; object-fit: contain; border-radius: 6px; display: block; margin: auto; }
+.cert-lightbox-label { text-align: center; margin: 12px 0 4px; font-size: 12px; color: #c9c1d9; }
+.cert-lightbox-close { position: absolute; top: -18px; right: -18px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid #c2a4ff77; background: #242036; color: #fff; font-size: 24px; cursor: pointer; }
+@keyframes certFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@media (max-width: 600px) {
+  .cert-section { padding: 90px 0 80px; }
+  .cert-header h2 { letter-spacing: -1.5px; }
+  .cert-eyebrow { font-size: 9px; letter-spacing: 2px; }
+  .cert-scene { height: 290px; perspective: 1000px; }
+  .cert-card { top: calc(50% - 105px); left: calc(50% - 74px); width: 148px; height: 210px; padding: 6px; }
+  .cert-orbit { height: 90px; }
+  .cert-lightbox-overlay { padding: 24px; }
+  .cert-lightbox-content { padding: 8px; }
 }

@@ -4,10 +4,10 @@ import { lenis } from "../Navbar";
 
 export function initialFX() {
   document.body.style.overflowY = "auto";
-  lenis.start(); // lenis start
+  lenis?.start();
   document.getElementsByTagName("main")[0].classList.add("main-active");
   gsap.to("body", {
-    backgroundColor: "#0b080c",
+    backgroundColor: "#080b13",
     duration: 0.5,
     delay: 1,
   });
