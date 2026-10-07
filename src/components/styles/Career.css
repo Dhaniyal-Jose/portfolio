@@ -8,7 +8,7 @@
   opacity: 1;
   height: auto;
   margin: auto;
-  margin-bottom: 250px;
+  margin-bottom: 120px;
   padding: 120px 0px;
 }
 
@@ -42,6 +42,10 @@
   display: flex;
   justify-content: space-between;
   margin-bottom: 50px;
+}
+
+.career-info-box:last-child {
+  margin-bottom: 0;
 }
 
 .career-info-box p {
@@ -175,10 +179,11 @@
   }
 }
 
-@media only screen and (max-width: 1025px) {
+@media only screen and (max-width: 1024px) {
   .career-section {
     padding: 70px 0px;
     padding-top: 220px;
+    padding-bottom: 48px;
     margin-top: -150px;
     margin-bottom: 0;
   }

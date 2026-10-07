@@ -39,6 +39,7 @@ const certificates: Certificate[] = [
     { id: 29, label: "Certificate (Page 5)", image: "/certificates/Adobe Scan Feb 5, 2026 (4)_page-0005.jpg" },
     { id: 30, label: "Certificate (Page 6)", image: "/certificates/Adobe Scan Feb 5, 2026 (4)_page-0006.jpg" },
     { id: 31, label: "Photo", image: "/certificates/IMG_7057.JPG" },
+    { id: 32, label: "IEDC Student Lead Recognition (2025–26)", image: "/certificates/IEDC-CEO-STIST.jpg" },
 ];
 
 const TOTAL = certificates.length;

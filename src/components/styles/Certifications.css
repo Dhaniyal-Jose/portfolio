@@ -1,4 +1,4 @@
-.cert-section { display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto; padding: 130px 0 110px; position: relative; text-align: center; }
+.cert-section { display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto; padding: 130px 0 48px; position: relative; text-align: center; }
 .cert-header { margin-bottom: 30px; }
 .cert-eyebrow { display: block; color: #9a8cad; font-size: 10px; letter-spacing: 3px; margin-bottom: 20px; }
 .cert-header h2 { font-size: clamp(36px, 5vw, 70px); line-height: 1.15; font-weight: 400; margin: 0 0 20px; letter-spacing: -2px; }
@@ -17,15 +17,18 @@
 .cert-controls button { color: #ded5f1; font: inherit; font-size: 12px; border: 1px solid #c2a4ff2e; border-radius: 50px; background: #151725; height: 42px; min-width: 42px; padding: 0 18px; cursor: pointer; transition: background .2s, border-color .2s; }
 .cert-controls button:hover { background: #29203f; border-color: #c2a4ff88; }
 .cert-controls button:disabled { opacity: .4; cursor: default; }
-.cert-hint { font-size: 11px; color: #8d8b9a; margin-top: 18px; }
+.cert-hint { font-size: 11px; color: #8d8b9a; margin: 18px 0 0; }
 .cert-lightbox-overlay { position: fixed; inset: 0; background: #080b13ed; z-index: 100000; display: flex; align-items: center; justify-content: center; padding: 26px; box-sizing: border-box; animation: certFadeIn .2s ease; }
 .cert-lightbox-content { position: relative; width: fit-content; max-width: 900px; max-height: 90svh; background: #121624; border: 1px solid #c2a4ff55; border-radius: 16px; padding: 14px; box-sizing: border-box; }
 .cert-lightbox-content img { max-width: 100%; width: auto; max-height: 76svh; height: auto; object-fit: contain; border-radius: 6px; display: block; margin: auto; }
 .cert-lightbox-label { text-align: center; margin: 12px 0 4px; font-size: 12px; color: #c9c1d9; }
 .cert-lightbox-close { position: absolute; top: -18px; right: -18px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid #c2a4ff77; background: #242036; color: #fff; font-size: 24px; cursor: pointer; }
 @keyframes certFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@media (max-width: 1024px) {
+  .cert-section { padding-top: 80px; }
+}
 @media (max-width: 600px) {
-  .cert-section { padding: 90px 0 80px; }
+  .cert-section { padding: 72px 0 40px; }
   .cert-header h2 { letter-spacing: -1.5px; }
   .cert-eyebrow { font-size: 9px; letter-spacing: 2px; }
   .cert-scene { height: 290px; perspective: 1000px; }

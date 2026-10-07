@@ -257,8 +257,8 @@
 }
 
 @media (max-width: 1024px), (prefers-reduced-motion: reduce) {
-  .work-section { height: auto; padding: 50px 0; will-change: auto; }
-  .work-section h2 { margin-top: 20px; font-size: 40px; }
+  .work-section { height: auto; padding: 24px 0 50px; will-change: auto; }
+  .work-section h2 { margin-top: 0; font-size: 40px; }
   .work-flex { flex-direction: column; margin: 0; padding: 0; gap: 24px; }
   .work-box, .work-flex .work-box:nth-child(even) { width: 100%; flex-direction: column; border: 1px solid #c2a4ff20; border-radius: 18px; background: #131723b3; padding: 24px; gap: 24px; }
   .work-flex::before, .work-flex::after { display: none; }
