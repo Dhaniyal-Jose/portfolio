@@ -51,8 +51,11 @@ const Loading = ({ percent }: { percent: number }) => {
       <div className="loading-header">
         <a href="/#" className="loader-title" data-cursor="disable">
           <img
-            src="/images/profile-neon-purple.png"
-            alt="Dhaniyal Jose"
+            src="/images/dhaniyal-jose-profile-avatar.png"
+            alt="Dhaniyal Jose - Professional Portrait"
+            width="1254"
+            height="1254"
+            decoding="async"
             style={{
               width: "128px",
               height: "128px",

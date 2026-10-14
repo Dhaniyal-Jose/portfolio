@@ -10,6 +10,7 @@
   margin: auto;
 }
 .about-me {
+  position: relative;
   padding: 50px 0px;
   padding-bottom: 0;
   width: 500px;
@@ -21,6 +22,21 @@
   letter-spacing: 7px;
   font-weight: 400;
   color: var(--accentColor);
+}
+
+.about-portrait {
+  display: block;
+  position: absolute;
+  top: 62px;
+  right: 0;
+}
+.about-portrait img {
+  display: block;
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 1px solid rgba(194, 164, 255, 0.4);
 }
 
 .about-me p {
@@ -57,6 +73,9 @@
   .about-me {
     padding: 0px;
     width: 50%;
+  }
+  .about-portrait {
+    top: 12px;
   }
   .about-me p {
     font-size: 1.9vw;

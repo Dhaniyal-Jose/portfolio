@@ -50,8 +50,8 @@ const Navbar = () => {
       <div className="header">
         <a href="#landingDiv" className="navbar-title" data-cursor="disable" aria-label="Dhaniyal Jose — back to top">
           <img
-            src="/images/profile-neon-purple.png"
-            alt="Dhaniyal Jose"
+            src="/images/dhaniyal-jose-profile-avatar.png"
+            alt="Dhaniyal Jose - Professional Portrait"
             className="profile-avatar"
             width="64"
             height="64"
